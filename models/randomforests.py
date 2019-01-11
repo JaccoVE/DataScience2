@@ -28,7 +28,7 @@ def PCA_function(tra_mdl_data, val_mdl_data, expl_var):
     return PCAdf_tra, PCAdf_val
 
 # Function for a random hyperparameter grid search
-def RHG_search(n_estimators, max_features, max_depth, min_samples_leaf, min_samples_split, bootstrap, n_iter, cv):
+def RHG_search(n_estimators, max_features, max_depth, min_samples_leaf, min_samples_split, bootstrap, n_iter, cv, scoring):
 
     random_grid = {'n_estimators': n_estimators,                                                 # Dictionary for the hyperparameters
                    'max_features': max_features,
@@ -39,7 +39,7 @@ def RHG_search(n_estimators, max_features, max_depth, min_samples_leaf, min_samp
 
     clf = RandomForestClassifier()                                                               # Estimator that is used
     rf_random = RandomizedSearchCV(estimator = clf, param_distributions = random_grid,           # Randomzed grid search of the hyperparameters
-                                   n_iter = n_iter, cv = cv, verbose=1, n_jobs= -1)
+                                   scoring = scoring, n_iter = n_iter, cv = cv, verbose=1, n_jobs= -1)
     best_hp = rf_random.best_params_
     return best_hp                                                                               # The best hyperparameters from the RHG search
 
@@ -60,13 +60,13 @@ def train_perd(best_hp, PCAdf_tra, PCAdf_val):
     return mat_val, mat_tra, acc_val, acc_train
 
 # Function to write results to excel
-def save_results(iterations, crossVal, mat_val, mat_tra, acc_val, acc_train):
+def save_results(i, iterations, crossVal, mat_val, mat_tra, acc_val, acc_train):
     print('Results saved as:')
     saveLocation = '../results/'
     saveName = 'randomforests-' + 'iter_' + str(iterations) + '-cv_' + str(crossVal) + '.xlsx'
     print(saveLocation + saveName)
 
-    properties_model = [mat_val, mat_tra, acc_val, acc_train]
+    properties_model = [i, mat_val, mat_tra, acc_val, acc_train]
     book = openpyxl.load_workbook(saveLocation + saveName)
     sheet = book.active
     sheet.append(properties_model)
@@ -96,9 +96,15 @@ bootstrap = [True, False]
 # Algorithm settings
 iterations = 1000
 crossVal = 3
+scoring = "roc_auc"
 
 # Algorithm
-results = 'test'
+for i
+    PCA_function(tra_mdl_data, val_mdl_data, expl_var)
 
-# Save to file
-save_results(iterations, crossVal, 1, 2, 3, 4)
+    RHG_search(n_estimators, max_features, max_depth, min_samples_leaf, min_samples_split, bootstrap, iterations, crossVal, scoring)
+
+    train_perd(best_hp, PCAdf_tra, PCAdf_val)
+
+    # Save to file
+    save_results(i, iterations, crossVal, 1, 2, 3, 4)

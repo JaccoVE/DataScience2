@@ -129,7 +129,7 @@ min_samples_leaf = [1, 2, 4, 8, 16, 32]
 bootstrap = [True, False]
 
 # (3) Algorithm settings
-n_iter, cv, scoring = 100, 3,  "roc_auc"
+n_iter, cv, scoring = 10000, 3,  "roc_auc"
 
 # (4) Algorithm for finding the hyperparameters to initialize the model
 

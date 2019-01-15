@@ -72,20 +72,20 @@ def performance(best_hp, trainDataM, valDataM):
 
     clf = KNeighborsClassifier(n_neighbors=best_hp['n_neighbors'],weights=best_hp['weights'],leaf_size=best_hp['leaf_size'],p=best_hp['p'])
     # The mean score and the 95% confidence interval
-    scoresTrain = cross_val_score(clf, trainDataM[:,1:45], trainDataM[:,0], cv=5,  scoring='roc_auc')
-    scoresVal = cross_val_score(clf, valDataM[:,1:45], valDataM[:,0], cv=5, scoring='roc_auc')
+    scoresTrain = cross_val_score(clf, trainDataM[:,1:45], trainDataM[:,0], cv=3,  scoring='roc_auc')
+    scoresVal = cross_val_score(clf, valDataM[:,1:45], valDataM[:,0], cv=3, scoring='roc_auc')
     print("Accuracy Train: %0.2f (+/- %0.2f)" % (scoresTrain.mean(), scoresTrain.std() * 2))
     print("Accuracy Val: %0.2f (+/- %0.2f)" % (scoresVal.mean(), scoresVal.std() * 2))
     print(scoresTrain)
     print(scoresVal)
 
-    clf.fit(trainDataM[:,1:45], trainDataM[:,0].astype(int))                              # Train the model
-    val_pred = clf.predict(valDataM[:,1:45])                                              # Prediction of classes on the validation data
-    tra_pred = clf.predict(trainDataM[:,1:45])                                              # Prediction of classes on the training data
-    acc_val = metrics.accuracy_score(valDataM[:,0].astype(int), val_pred)                 # Accuracy of validation data
-    acc_train = metrics.accuracy_score(trainDataM[:,0].astype(int), tra_pred)               # Accuracy of training data
-    print("Acc val:", acc_val)
-    print("Acc train:", acc_train)
+    #clf.fit(trainDataM[:,1:45], trainDataM[:,0].astype(int))                              # Train the model
+    #val_pred = clf.predict(valDataM[:,1:45])                                              # Prediction of classes on the validation data
+    #tra_pred = clf.predict(trainDataM[:,1:45])                                              # Prediction of classes on the training data
+    #acc_val = metrics.accuracy_score(valDataM[:,0].astype(int), val_pred)                 # Accuracy of validation data
+    #acc_train = metrics.accuracy_score(trainDataM[:,0].astype(int), tra_pred)               # Accuracy of training data
+    #print("Acc val:", acc_val)
+    #print("Acc train:", acc_train)
 
     return clf, scoresTrain, scoresVal
 

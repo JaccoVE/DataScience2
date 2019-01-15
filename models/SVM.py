@@ -38,98 +38,160 @@ def scalingData(trainData):
 
     return trainDataStandard, trainDataMinMax, trainDataNorm
 
-def loadData():
+def distibution(labels):
 
-    # (1) Load training data from file
-    trainData = np.loadtxt("../data/train_data.txt")                           # Load the train data
-    testData = np.loadtxt("../data/test_data.txt")                             # Load the test data
-    trainDataM, valDataM = train_test_split(trainData, test_size=0.3)         # Split train set into 80% for training and 20% for validation
+    unique, counts = np.unique(labels, return_counts=True)
 
-    return trainDataM, valDataM, testData, trainDataM
+    return np.asarray((unique, counts)).T
 
 # Function for a random hyperparameter gird search
-def randomGridSearch(C,kernel,degree,coef0,n_iter, cv, scoring, trainDataM):
+def randomGridSearch(estimator, C, kernel, degree, coef0, n_iter, cv, scoring, trainFeatures, trainLabels):
 
+    print("Performing randomGridSearch...")
+
+    # Estimator that is used
+    clf = estimator
+
+    # Random grid
     random_grid = {'C': C,
                    'kernel': kernel,
                    'degree': degree,
                    'coef0': coef0}
 
-    clf = SVC()                                                                          # Estimator that is used
-    rf_random = RandomizedSearchCV(estimator = clf, param_distributions = random_grid,                      # Randomzed grid search of the hyperparameters
-                                   scoring = scoring, n_iter = n_iter, verbose = 1, cv = cv, n_jobs= -1)
-    rf_random.fit(trainDataM[:,1:45], trainDataM[:,0].astype(int))                                          # Train the numerous models
-    best_hp = rf_random.best_params_                                                                        # Store the best hyperparameters
+    # Randomzed grid search of the hyperparameters
+    rf_random = RandomizedSearchCV( estimator = clf,
+                                    param_distributions = random_grid,
+                                    scoring = scoring,
+                                    n_iter = n_iter,
+                                    verbose = 1,
+                                    cv = cv,
+                                    n_jobs= -1)
+
+    # Train the numerous models
+    rf_random.fit(trainFeatures, trainLabels)
+
+    # Store the best hyperparameters
+    best_hp = rf_random.best_params_
+
+    print("done\n")
 
     return best_hp
 
-# Function for training and performance assesment
-def performance(best_hp, trainDataM, valDataM):
+# Function for training
+def train(best_hp, trainFeatures, trainLabels):
 
+    print("Training with best hyperparameter...")
+
+    # Setup the model with the best hyperparameter
     clf = SVC(C=best_hp['C'],kernel=best_hp['kernel'],degree=best_hp['degree'],coef0=best_hp['coef0'])
-    # The mean score and the 95% confidence interval
-    scoresTrain = cross_val_score(clf, trainDataM[:,1:45], trainDataM[:,0], cv=5,  scoring='roc_auc')
-    scoresVal = cross_val_score(clf, valDataM[:,1:45], valDataM[:,0], cv=5, scoring='roc_auc')
-    print("Accuracy Train: %0.2f (+/- %0.2f)" % (scoresTrain.mean(), scoresTrain.std() * 2))
-    print("Accuracy Val: %0.2f (+/- %0.2f)" % (scoresVal.mean(), scoresVal.std() * 2))
-    print(scoresTrain)
-    print(scoresVal)
 
-    clf.fit(trainDataM[:,1:45], trainDataM[:,0].astype(int))                              # Train the model
-    val_pred = clf.predict(valDataM[:,1:45])                                              # Prediction of classes on the validation data
-    tra_pred = clf.predict(trainDataM[:,1:45])                                              # Prediction of classes on the training data
-    acc_val = metrics.accuracy_score(valDataM[:,0].astype(int), val_pred)                 # Accuracy of validation data
-    acc_train = metrics.accuracy_score(trainDataM[:,0].astype(int), tra_pred)               # Accuracy of training data
-    print("Acc val:", acc_val)
-    print("Acc train:", acc_train)
+    # Train the model
+    clf.fit(trainFeatures, trainLabels)
 
-    return clf, scoresTrain, scoresVal
+    print("done\n")
+
+    return clf
+
+# Function for analyzing the performance/score of the model
+def score(clf, features, labels):
+
+    print("Evaluating the score of the model...")
+
+    score = clf.score(features, labels)
+
+    print("done\n")
+
+    return score
 
 # Function to write results to excel
-def saveResults(best_hp, scoresTrain, scoresVal, clf, fileName, saveName):
+def saveResults(best_hp, scoreTrain, scoreTest, clf, fileNameModel, fileNameResults):
 
-        # save the model to disk
-    joblib.dump(clf, fileName)
+    # save the model to disk
+    joblib.dump(clf, fileNameModel)
 
-    print('Results saved as:')
+    print('Model saved as:')
+    print(fileNameModel)
 
-    saveLocation = '../results/'                                                                # Location for the save
-
-    print(saveLocation + saveName)
-
-    properties_model = [scoresTrain.mean(),
-                        scoresTrain.std()*2,
-                        scoresVal.mean(),
-                        scoresVal.std() * 2,
-                        best_hp['C'],
+    properties_model = [best_hp['C'],
                         best_hp['kernel'],
                         best_hp['degree'],
-                        best_hp['coef0']]                   # Which values are saved
-    book = openpyxl.load_workbook(saveLocation + saveName)
+                        best_hp['coef0'],
+                        scoreTrain,
+                        scoreTest]
+
+    book = openpyxl.load_workbook(fileNameResults)
     sheet = book.active
     sheet.append(properties_model)
-    book.save(saveLocation + saveName)
+    book.save(fileNameResults)
     time.sleep(0.1)
 
-    return "File successfully saved"
+    print('Results saved as:')
+    print(fileNameResults)
 
-# (1) Load the data
-[trainDataM, valDataM, testData, trainData] = loadData()
-[trainDataStandard, trainDataMinMax, trainDataNorm] = scalingData(trainData)
-trainDataM, valDataM = train_test_split(trainDataM, test_size=0.3)
-# (2) Initialize grid
-C=[0.001, 0.01, 0.1, 1, 10]
-kernel=['linear', 'poly', 'rbf']
-degree=[2,4,8,10]
-coef0=[-8,-4,-2,2,4,8]
-# (3) Algorithm settings
-n_iter, cv, scoring = 1000, 3,  "roc_auc"
-# (4) Save locations
-fileName = '../results/finalized_model_svm.sav'
-saveName = 'svm_rgs.xlsx'
-# (5) Random Grid search
-best_hp = randomGridSearch(C,kernel,degree,coef0,n_iter,cv,scoring,trainDataM)
-# (6) Performance assesment
-[clf, scoresTrain, scoresVal] = performance(best_hp, trainDataM, valDataM)
-# (7) Save results
-saveResults(best_hp,scoresTrain,scoresVal,clf,fileName,saveName)
+    return "Files successfully saved"
+
+# ------------------------------------------------------------------------------
+
+# Save locations
+fileNameModel = '../results/SVM.sav'
+fileNameResults = '../results/SVM.xlsx'
+
+# Load the train and test data
+trainData = np.loadtxt("../data/train_data.txt")
+testData = np.loadtxt("../data/test_data.txt")
+
+# Split the features and labels
+trainFeatures = trainData[:,1:45]
+trainLabels = trainData[:,0].astype(int)
+
+testFeatures = testData[:,1:45]
+testLabels = testData[:,0].astype(int)
+
+# Check the data distibution
+distTrain = distibution(trainLabels)
+distTest = distibution(testLabels)
+
+# Print data distibution
+print("Distibution of the training data:")
+print(distTrain)
+
+print("Distibution of the test data:")
+print(distTest)
+
+# Estimator to use
+estimator = SVC(gamma='auto')
+
+# Random Grid Search Settings
+C = [0.001, 0.01, 0.1, 1, 10]
+kernel = ['linear', 'poly', 'rbf']
+degree = [2,4,8,10]
+coef0 = [-8,-4,-2,2,4,8]
+n_iter = 1000
+cv = 5
+scoring = "roc_auc"
+
+# Random Grid search
+best_hp = randomGridSearch( estimator,
+                            C,
+                            kernel,
+                            degree,
+                            coef0,
+                            n_iter,
+                            cv,
+                            scoring,
+                            trainFeatures,
+                            trainLabels)
+
+# Train the model
+clf = train(best_hp, trainFeatures, trainLabels)
+
+# Check the score on the model on the training and test set
+scoreTrain = score(clf, trainFeatures, trainLabels)
+scoreTest = score(clf, testFeatures, testLabels)
+
+# Print the score of the model
+print("Score on training set: " + str(scoreTrain))
+print("Score on test set: " + str(scoreTest))
+
+# Save results
+saveResults(best_hp, scoreTrain, scoreTest, clf, fileNameModel, fileNameResults)

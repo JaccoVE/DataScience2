@@ -5,7 +5,6 @@ import numpy as np
 import json
 import openpyxl
 
-from sklearn import svm
 from sklearn.preprocessing import StandardScaler
 from sklearn.preprocessing import Normalizer
 from sklearn.preprocessing import MinMaxScaler
@@ -14,15 +13,9 @@ from sklearn.externals import joblib
 from sklearn.preprocessing import StandardScaler
 from sklearn.preprocessing import label_binarize
 from pprint import pprint
-from sklearn.decomposition import PCA
-from sklearn.model_selection import GridSearchCV
 from sklearn.model_selection import RandomizedSearchCV
-from sklearn.metrics import confusion_matrix
-from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 from sklearn import metrics
-from sklearn.feature_selection import SelectFromModel
-from sklearn.ensemble import ExtraTreesClassifier
 from sklearn.svm import SVC
 
 def scalingData(trainData):

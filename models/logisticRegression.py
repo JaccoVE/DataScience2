@@ -19,7 +19,7 @@ from pprint import pprint
 from sklearn.model_selection import RandomizedSearchCV
 from sklearn.model_selection import train_test_split
 from sklearn import metrics
-from sklearn.svm import SVC
+from sklearn.linear_model import LogisticRegression
 
 def scaleFeatures(features):
 
@@ -62,7 +62,9 @@ def randomGridSearch(estimator, hyperparameters, n_iter, cv, scoring, trainFeatu
                             cv = cv,
                             scoring = scoring,
                             verbose = 1,
-                            n_jobs= -1)
+                            n_jobs = -1,
+                            error_score=np.nan,
+                            iid = False)
 
     # Train the numerous models
     clf.fit(trainFeatures, trainLabels)
@@ -133,8 +135,8 @@ def saveResults(bestHyperparameters, trainReport, trainAccuracy, testReport,
 # ------------------------------------------------------------------------------
 
 # Save locations
-fileNameModel = "../results/SVM.sav"
-fileNameResults = "../results/SVM.xlsx"
+fileNameModel = "../results/logisticRegression.sav"
+fileNameResults = "../results/logisticRegression.xlsx"
 
 # Load the train and test data
 trainData = np.loadtxt("../data/train_data.txt")
@@ -159,22 +161,21 @@ print("\nDistibution of the test data:")
 print(distTest)
 
 # Estimator to use
-estimator = SVC()
+estimator = LogisticRegression()
 
 # Hyperparameter combinations to test
-hyperparameters = { 'C': [0.001, 0.01, 0.1, 1, 10],
-                    'kernel' : ['linear', 'poly', 'rbf'],
-                    'degree' : [2,4,8,10],
-                    'gamma' : ['auto', 'scale'],
-                    'coef0': [-8, -4, -2, 2, 4, 8],
-                    'shrinking': [True, False],
+hyperparameters = { 'penalty': ['l2'],
+                    'dual' : [False],
+                    'C' : [0.001, 0.01, 0.05, 0.07, 0.09, 0.1, 1, 10, 100],
+                    'fit_intercept' : [True, False],
+                    'solver' : ['newton-cg', 'lbfgs', 'liblinear', 'sag', 'saga'],
                     'max_iter' : [1000000000]}
 
 print("\nPossible hyperparameter combinations:")
 print(str(combinations(hyperparameters)))
 
 # Algorithm Settings
-n_iter = 10
+n_iter = combinations(hyperparameters)
 cv = 5
 scoring = "roc_auc"
 

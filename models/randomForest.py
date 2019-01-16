@@ -21,25 +21,19 @@ from sklearn.model_selection import train_test_split
 from sklearn import metrics
 from sklearn.ensemble import RandomForestClassifier
 
-def scalingData(trainData):
+def scaleFeatures(features):
 
     # https://stackoverflow.com/questions/30918781/right-function-for-normalizing-input-of-sklearn-svm
     # Standardizing the features using Standard Scaler
-    features = StandardScaler().fit_transform(trainData[:,1:45])
-    labels = trainData[:,0]
-    trainDataStandard = np.c_[labels, trainData]
+    features = StandardScaler().fit_transform(features)
 
     # Standardizing the features using MinMax Scaler
-    features =  MinMaxScaler().fit_transform(trainData[:,1:45])
-    labels = trainData[:,0]
-    trainDataMinMax = np.c_[labels, trainData]
+    #features =  MinMaxScaler().fit_transform(features)
 
     # Standardizing the features using Normalizer Scaler
-    features = Normalizer().fit_transform(trainData[:,1:45])
-    labels = trainData[:,0]
-    trainDataNorm = np.c_[labels, trainData]
+    #features = Normalizer().fit_transform(features)
 
-    return trainDataStandard, trainDataMinMax, trainDataNorm
+    return features
 
 def distibution(labels):
 

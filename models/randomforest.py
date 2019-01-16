@@ -1,5 +1,6 @@
 # Load libraries
 import time
+import os
 import pandas as pd
 import numpy as np
 import json
@@ -46,10 +47,19 @@ def distibution(labels):
 
     return np.asarray((unique, counts)).T
 
+def combinations(hyperparameters):
+
+    count = 1
+
+    for parameter in hyperparameters:
+        count = count * len(hyperparameters[parameter])
+
+    return count
+
 # Function for a random hyperparameter gird search
 def randomGridSearch(estimator, hyperparameters, n_iter, cv, scoring, trainFeatures, trainLabels):
 
-    print("Performing randomGridSearch...")
+    print("\nPerforming randomGridSearch...")
 
     # Randomzed grid search of the hyperparameters
     clf = RandomizedSearchCV(estimator = estimator,
@@ -64,22 +74,20 @@ def randomGridSearch(estimator, hyperparameters, n_iter, cv, scoring, trainFeatu
     clf.fit(trainFeatures, trainLabels)
 
     # Identify optimal hyperparameter values
-    best_n_estim      = clf.best_params_['n_estimators']
-    best_max_features = clf.best_params_['max_features']
+    bestHyperparameters = clf.best_params_
 
-    print("The best performing n_estimators value is: {:5d}".format(best_n_estim))
-    print("The best performing max_features value is: {:5d}".format(best_max_features))
+    print("The best performing hyperparameters values are:")
+    print(bestHyperparameters)
 
-    return best_n_estim, best_max_features
+    return bestHyperparameters
 
 # Function for training
-def train(estimator, best_n_estim, best_max_features, trainFeatures, trainLabels):
+def train(estimator, bestHyperparameters, trainFeatures, trainLabels):
 
-    print("Training with best hyperparameter...")
+    print("\nTraining with best hyperparameter...")
 
     # Setup the model with the best hyperparameter
-    clf = estimator.set_params( n_estimators=best_n_estim,
-                                max_features=best_max_features)
+    clf = estimator.set_params( **bestHyperparameters)
 
     # Train the model
     clf.fit(trainFeatures, trainLabels)
@@ -91,11 +99,11 @@ def train(estimator, best_n_estim, best_max_features, trainFeatures, trainLabels
 # Function for analyzing the performance/score of the model
 def score(clf, features, labels):
 
-    print("Evaluating the score of the model...")
+    print("\nEvaluating the score of the model...")
 
     predictions = clf.predict(features)
 
-    report = metrics.classification_report(features, predictions)
+    report = metrics.classification_report(labels, predictions)
     print (report)
 
     accuracy = round(metrics.accuracy_score(labels, predictions), 3)
@@ -104,17 +112,16 @@ def score(clf, features, labels):
     return report, accuracy
 
 # Function to write results to excel
-def saveResults(best_n_estim, best_max_features, trainReport, trainAccuracy, testReport,
+def saveResults(bestHyperparameters, trainReport, trainAccuracy, testReport,
             testAccuracy, clf, fileNameModel, fileNameResults):
 
     # save the model to disk
     joblib.dump(clf, fileNameModel)
 
-    print('Model saved as:')
+    print('\nModel saved as:')
     print(fileNameModel)
 
-    properties_model = [best_n_estim,
-                        best_max_features,
+    properties_model = [str(bestHyperparameters),
                         trainAccuracy,
                         testAccuracy]
 
@@ -124,7 +131,7 @@ def saveResults(best_n_estim, best_max_features, trainReport, trainAccuracy, tes
     book.save(fileNameResults)
     time.sleep(0.1)
 
-    print('Results saved as:')
+    print('\nResults saved as:')
     print(fileNameResults)
 
     return "Files successfully saved"
@@ -132,8 +139,8 @@ def saveResults(best_n_estim, best_max_features, trainReport, trainAccuracy, tes
 # ------------------------------------------------------------------------------
 
 # Save locations
-fileNameModel = '../results/randomForest.sav'
-fileNameResults = '../results/randomForest.xlsx'
+fileNameModel = "../results/randomForests.sav"
+fileNameResults = "../results/randomForests.xlsx"
 
 # Load the train and test data
 trainData = np.loadtxt("../data/train_data.txt")
@@ -151,55 +158,53 @@ distTrain = distibution(trainLabels)
 distTest = distibution(testLabels)
 
 # Print data distibution
-print("Distibution of the training data:")
+print("\nDistibution of the training data:")
 print(distTrain)
 
-print("Distibution of the test data:")
+print("\nDistibution of the test data:")
 print(distTest)
 
 # Estimator to use
 estimator = RandomForestClassifier()
 
-# Random Grid Search Settings
-n_estimators = np.random.uniform(70, 80, 5).astype(int)
-max_features = np.random.normal(6, 3, 5).astype(int)
+# Hyperparameter combinations to test
+hyperparameters = { 'n_estimators': [1000],
+                    'bootstrap' : [True, False],
+                    'criterion' : ["gini", "entropy"],
+                    'max_depth': [2, 4, 6, 8, 10, 12, 14, 16, 18, 20, None],
+                    'max_features': ["sqrt", "log2", None],
+                    'min_samples_split' : [2, 5, 10, 20, 40],
+                    'min_samples_leaf' : [1, 2, 4, 8, 16, 32]}
 
-# Check max_features>0 & max_features<=total number of features
-max_features[max_features <= 0] = 1
-max_features[max_features > trainFeatures.shape[1]] = trainFeatures.shape[1]
-
-hyperparameters = {'n_estimators': list(n_estimators),
-                   'max_features': list(max_features)}
-
-print (hyperparameters)
+print("\nPossible hyperparameter combinations:")
+print(str(combinations(hyperparameters)))
 
 # Algorithm Settings
-n_iter = 1000
+n_iter = 400
 cv = 5
 scoring = "roc_auc"
 
 # Random Grid search
-best_n_estim, best_max_features  = randomGridSearch(estimator,
-                                                    hyperparameters,
-                                                    n_iter,
-                                                    cv,
-                                                    scoring,
-                                                    trainFeatures,
-                                                    trainLabels)
+bestHyperparameters  = randomGridSearch(estimator,
+                                        hyperparameters,
+                                        n_iter,
+                                        cv,
+                                        scoring,
+                                        trainFeatures,
+                                        trainLabels)
 
 # Train classifier using optimal hyperparameter values
-clf = train(estimator, best_n_estim, best_max_features, trainFeatures, trainLabels)
+clf = train(estimator, bestHyperparameters, trainFeatures, trainLabels)
 
 # Check the score on the model on the training and test set
-print("Score on training set:")
+print("\nScore on training set:")
 trainReport, trainAccuracy = score(clf, trainFeatures, trainLabels)
 
-print("Score on test set:")
+print("\nScore on test set:")
 testReport, testAccuracy = score(clf, testFeatures, testLabels)
 
 # Save results
-saveResults(best_n_estim,
-            best_max_features,
+saveResults(bestHyperparameters,
             trainReport,
             trainAccuracy,
             testReport,

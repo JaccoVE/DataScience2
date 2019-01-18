@@ -19,7 +19,7 @@ from pprint import pprint
 from sklearn.model_selection import RandomizedSearchCV
 from sklearn.model_selection import train_test_split
 from sklearn import metrics
-from sklearn.svm import SVC
+from sklearn.ensemble import RandomForestClassifier
 
 def scaleFeatures(features):
 
@@ -133,18 +133,18 @@ def saveResults(bestHyperparameters, trainReport, trainAccuracy, testReport,
 # ------------------------------------------------------------------------------
 
 # Save locations
-fileNameModel = "../results/SVM.sav"
-fileNameResults = "../results/SVM.xlsx"
+fileNameModel = "../results/randomForests.sav"
+fileNameResults = "../results/randomForests.xlsx"
 
 # Load the train and test data
 trainData = np.loadtxt("../data/train_data.txt")
 testData = np.loadtxt("../data/test_data.txt")
 
 # Split the features and labels
-trainFeatures = scaleFeatures(trainData[:,1:45])
+trainFeatures = trainData[:,1:45]
 trainLabels = trainData[:,0].astype(int)
 
-testFeatures = scaleFeatures(testData[:,1:45])
+testFeatures = testData[:,1:45]
 testLabels = testData[:,0].astype(int)
 
 # Check the data distibution
@@ -159,22 +159,22 @@ print("\nDistibution of the test data:")
 print(distTest)
 
 # Estimator to use
-estimator = SVC()
+estimator = RandomForestClassifier()
 
 # Hyperparameter combinations to test
-hyperparameters = { 'C': [0.001, 0.01, 0.1, 1, 10],
-                    'kernel' : ['linear', 'poly', 'rbf'],
-                    'degree' : [2,4,8,10],
-                    'gamma' : ['auto', 'scale'],
-                    'coef0': [-8, -4, -2, 2, 4, 8],
-                    'shrinking': [True, False],
-                    'max_iter' : [1000000000]}
+hyperparameters = { 'n_estimators': [1000],
+                    'bootstrap' : [True, False],
+                    'criterion' : ["gini", "entropy"],
+                    'max_depth': [2, 4, 6, 8, 10, 12, 14, 16, 18, 20, None],
+                    'max_features': ["sqrt", "log2", None],
+                    'min_samples_split' : [2, 5, 10, 20, 40],
+                    'min_samples_leaf' : [1, 2, 4, 8, 16, 32]}
 
 print("\nPossible hyperparameter combinations:")
 print(str(combinations(hyperparameters)))
 
 # Algorithm Settings
-n_iter = 10
+n_iter = 400
 cv = 5
 scoring = "roc_auc"
 

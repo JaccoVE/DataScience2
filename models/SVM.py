@@ -4,6 +4,7 @@ import numpy as np
 import openpyxl
 from sklearn.externals import joblib
 from sklearn.model_selection import RandomizedSearchCV
+from sklearn.model_selection import GridSearchCV
 from sklearn import metrics
 from sklearn.svm import SVC
 
@@ -28,13 +29,20 @@ def randomGridSearch(estimator, hyperparameters, n_iter, cv, scoring, trainFeatu
     print("\nPerforming randomGridSearch...")
 
     # Randomzed grid search of the hyperparameters
-    clf = RandomizedSearchCV(estimator = estimator,
-                            param_distributions = hyperparameters,
-                            n_iter = n_iter,
+    #clf = RandomizedSearchCV(estimator = estimator,
+    #                        param_distributions = hyperparameters,
+    #                        n_iter = n_iter,
+    #                        cv = cv,
+    #                        scoring = scoring,
+    #                        verbose = 1,
+    #                        n_jobs= 23)
+
+    clf = GridSearchCV(estimator = estimator,
+                            param_grid = hyperparameters,
                             cv = cv,
                             scoring = scoring,
                             verbose = 1,
-                            n_jobs= -1)
+                            n_jobs= 23)
 
     # Train the numerous models
     clf.fit(trainFeatures, trainLabels)
@@ -78,14 +86,14 @@ def score(clf, features, labels):
     return report, accuracy
 
 # Function to write results to excel
-def saveResults(i, bestHyperparameters, trainReport, trainAccuracy, testReport,
+def saveResults(bestHyperparameters, trainReport, trainAccuracy, testReport,
             testAccuracy, clf, fileNameModel, fileNameResults):
 
     # save the model to disk
-    joblib.dump(clf, str(fileNameModel) + str(i) + ".sav")
+    joblib.dump(clf, fileNameModel)
 
     print('\nModel saved as:')
-    print(str(fileNameModel) + str(i) + ".sav")
+    print(fileNameModel)
 
     properties_model = [str(bestHyperparameters),
                         trainAccuracy,
@@ -99,12 +107,10 @@ def saveResults(i, bestHyperparameters, trainReport, trainAccuracy, testReport,
     print('\nResults saved as:')
     print(fileNameResults)
 
-    return "Files successfully saved"
-
 # ------------------------------------------------------------------------------
 
 # Save locations
-fileNameModel = "../results/SVM"
+fileNameModel = "../results/SVM.sav"
 fileNameResults = "../results/SVM.xlsx"
 
 # Load the train and test data
@@ -132,57 +138,54 @@ print(distTest)
 # Estimator to use
 estimator = SVC()
 
+# Hyperparameter combinations to test
+#hyperparameters = { 'C': [0.001, 0.01, 0.1, 1.0, 10.0, 100.0, 1000.0],
+#                    'kernel' : ['linear', 'poly', 'rbf', 'sigmoid'],
+#                    'degree' : [3, 4, 5, 6, 7],
+#                    'gamma' : ['auto', 'scale'],
+#                    'coef0' : np.arange(-10, 10, 1),
+#                    'shrinking': [True]}
+
+hyperparameters = { 'C': [0.001, 0.05, 0.1, 0.15, 1.0],
+                    'kernel' : ['poly'],
+                    'degree' : [3, 4, 5],
+                    'gamma' : ['scale'],
+                    'coef0' : [6.8, 6.9, 7.0, 7.1, 7.2],
+                    'shrinking': [True]}
+
 # Algorithm Settings
-#n_iter = 42
+n_iter = 1000
 cv = 5
 scoring = "roc_auc"
 
-# Combinations to test
-combinations =  [1.83, 1.84]#[1.80, 1.82, 1.84, 1.86]
-count = 0
+print("\nHyperparameter combinations:")
+print("Testing " + str(n_iter) + " of " + str(numberOfCombinations(hyperparameters)) + " combinations")
 
-for value in combinations:
+# Random Grid search
+bestHyperparameters  = randomGridSearch(estimator,
+                                        hyperparameters,
+                                        numberOfCombinations(hyperparameters),
+                                        cv,
+                                        scoring,
+                                        trainFeatures,
+                                        trainLabels)
 
-    count = count + 1
+# Train classifier using optimal hyperparameter values
+clf = train(estimator, bestHyperparameters, trainFeatures, trainLabels)
 
-    print("-------------------------------------------------------------------")
-    print("\nIteration: " + str(count) + " of " + str(len(combinations)))
+# Check the score on the model on the training and test set
+print("\nScore on training set:")
+trainReport, trainAccuracy = score(clf, trainFeatures, trainLabels)
 
-    # Hyperparameter combinations to test
-    hyperparameters = { 'C': [value],
-                        'kernel' : ['linear'],
-                        'gamma' : ['auto', 'scale'],
-                        'shrinking': [True]}
+print("\nScore on test set:")
+testReport, testAccuracy = score(clf, testFeatures, testLabels)
 
-    print("\nHyperparameter combinations:")
-    print("Testing " + str(numberOfCombinations(hyperparameters)) + " of " + str(numberOfCombinations(hyperparameters)) + " combinations")
-
-    # Random Grid search
-    bestHyperparameters  = randomGridSearch(estimator,
-                                            hyperparameters,
-                                            numberOfCombinations(hyperparameters),
-                                            cv,
-                                            scoring,
-                                            trainFeatures,
-                                            trainLabels)
-
-    # Train classifier using optimal hyperparameter values
-    clf = train(estimator, bestHyperparameters, trainFeatures, trainLabels)
-
-    # Check the score on the model on the training and test set
-    print("\nScore on training set:")
-    trainReport, trainAccuracy = score(clf, trainFeatures, trainLabels)
-
-    print("\nScore on test set:")
-    testReport, testAccuracy = score(clf, testFeatures, testLabels)
-
-    # Save results
-    saveResults(count,
-                bestHyperparameters,
-                trainReport,
-                trainAccuracy,
-                testReport,
-                testAccuracy,
-                clf,
-                fileNameModel,
-                fileNameResults)
+# Save results
+saveResults(bestHyperparameters,
+            trainReport,
+            trainAccuracy,
+            testReport,
+            testAccuracy,
+            clf,
+            fileNameModel,
+            fileNameResults)

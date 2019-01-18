@@ -1,39 +1,11 @@
 # Load libraries
-import time
-import os
 import pandas as pd
 import numpy as np
-import json
 import openpyxl
-
-from scipy.stats import uniform
-from scipy.stats import norm
-from sklearn.preprocessing import StandardScaler
-from sklearn.preprocessing import Normalizer
-from sklearn.preprocessing import MinMaxScaler
-from sklearn.model_selection import cross_val_score
 from sklearn.externals import joblib
-from sklearn.preprocessing import StandardScaler
-from sklearn.preprocessing import label_binarize
-from pprint import pprint
 from sklearn.model_selection import RandomizedSearchCV
-from sklearn.model_selection import train_test_split
 from sklearn import metrics
 from sklearn.svm import SVC
-
-def scaleFeatures(features):
-
-    # https://stackoverflow.com/questions/30918781/right-function-for-normalizing-input-of-sklearn-svm
-    # Standardizing the features using Standard Scaler
-    features = StandardScaler().fit_transform(features)
-
-    # Standardizing the features using MinMax Scaler
-    #features =  MinMaxScaler().fit_transform(features)
-
-    # Standardizing the features using Normalizer Scaler
-    #features = Normalizer().fit_transform(features)
-
-    return features
 
 def distibution(labels):
 
@@ -61,7 +33,7 @@ def randomGridSearch(estimator, hyperparameters, n_iter, cv, scoring, trainFeatu
                             n_iter = n_iter,
                             cv = cv,
                             scoring = scoring,
-                            verbose = 1,
+                            verbose = 2,
                             n_jobs= -1)
 
     # Train the numerous models
@@ -123,7 +95,6 @@ def saveResults(bestHyperparameters, trainReport, trainAccuracy, testReport,
     sheet = book.active
     sheet.append(properties_model)
     book.save(fileNameResults)
-    time.sleep(0.1)
 
     print('\nResults saved as:')
     print(fileNameResults)
@@ -141,16 +112,11 @@ trainData = np.loadtxt("../data/train_data.txt")
 testData = np.loadtxt("../data/test_data.txt")
 
 # Split the features and labels
-trainFeatures = scaleFeatures(trainData[:,1:45])
+trainFeatures = trainData[:,1:45]
 trainLabels = trainData[:,0].astype(int)
 
-testFeatures = scaleFeatures(testData[:,1:45])
+testFeatures = testData[:,1:45]
 testLabels = testData[:,0].astype(int)
-
-print(trainFeatures)
-print(trainLabels)
-print(testFeatures)
-print(testLabels)
 
 # Check the data distibution
 distTrain = distibution(trainLabels)
@@ -167,19 +133,18 @@ print(distTest)
 estimator = SVC()
 
 # Hyperparameter combinations to test
-hyperparameters = { 'C': [0.001, 0.01, 0.1, 1, 10],
+hyperparameters = { 'C': [0.001, 0.01, 0.1, 1.0, 10, 100, 1000, 10000, 100000],
                     'kernel' : ['linear', 'poly', 'rbf'],
-                    'degree' : [2,4,8,10],
+                    'degree' : [3,4,5,6,7,8,9,10],
                     'gamma' : ['auto', 'scale'],
-                    'coef0': [-8, -4, -2, 2, 4, 8],
-                    'shrinking': [True, False],
-                    'max_iter' : [1000000000]}
+                    'coef0': [-4.0, -2.0, -1.0, -0.7, -0.5, -0.2, -0.1, 0.0, 0.1, 0.2, 0.5, 0.7, 1.0, 2.0, 4.0],
+                    'shrinking': [True, False]}
 
 print("\nPossible hyperparameter combinations:")
 print(str(combinations(hyperparameters)))
 
 # Algorithm Settings
-n_iter = 10
+n_iter = 1000
 cv = 5
 scoring = "roc_auc"
 

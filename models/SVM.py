@@ -147,6 +147,11 @@ trainLabels = trainData[:,0].astype(int)
 testFeatures = scaleFeatures(testData[:,1:45])
 testLabels = testData[:,0].astype(int)
 
+print(trainFeatures)
+print(trainLabels)
+print(testFeatures)
+print(testLabels)
+
 # Check the data distibution
 distTrain = distibution(trainLabels)
 distTest = distibution(testLabels)

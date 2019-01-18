@@ -33,7 +33,7 @@ def randomGridSearch(estimator, hyperparameters, n_iter, cv, scoring, trainFeatu
                             n_iter = n_iter,
                             cv = cv,
                             scoring = scoring,
-                            verbose = 2,
+                            verbose = 1,
                             n_jobs= -1)
 
     # Train the numerous models
@@ -133,7 +133,7 @@ print(distTest)
 estimator = SVC()
 
 # Hyperparameter combinations to test
-hyperparameters = { 'C': [0.001, 0.01, 0.1, 1.0, 10, 100, 1000, 10000, 100000],
+hyperparameters = { 'C': [0.001, 0.01, 0.1, 1.0, 10, 100, 1000],
                     'kernel' : ['linear', 'poly', 'rbf'],
                     'degree' : [3,4,5,6,7,8,9,10],
                     'gamma' : ['auto', 'scale'],

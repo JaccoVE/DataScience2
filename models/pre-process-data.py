@@ -81,6 +81,6 @@ print(distTrain)
 print("\nDistibution of the test data:")
 print(distTest)
 
-# Load the train and test data
-trainData = np.savetxt("../data/train_data.txt", trainData)
-testData = np.savetxt("../data/test_data.txt", testData)
+# Save the train and test data
+#np.savetxt("../data/train_data.txt", trainData)
+#np.savetxt("../data/test_data.txt", testData)

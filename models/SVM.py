@@ -13,7 +13,7 @@ def distibution(labels):
 
     return np.asarray((unique, counts)).T
 
-def combinations(hyperparameters):
+def numberOfCombinations(hyperparameters):
 
     count = 1
 
@@ -78,14 +78,14 @@ def score(clf, features, labels):
     return report, accuracy
 
 # Function to write results to excel
-def saveResults(bestHyperparameters, trainReport, trainAccuracy, testReport,
+def saveResults(i, bestHyperparameters, trainReport, trainAccuracy, testReport,
             testAccuracy, clf, fileNameModel, fileNameResults):
 
     # save the model to disk
-    joblib.dump(clf, fileNameModel)
+    joblib.dump(clf, str(fileNameModel) + str(i) + ".sav")
 
     print('\nModel saved as:')
-    print(fileNameModel)
+    print(str(fileNameModel) + str(i) + ".sav")
 
     properties_model = [str(bestHyperparameters),
                         trainAccuracy,
@@ -104,7 +104,7 @@ def saveResults(bestHyperparameters, trainReport, trainAccuracy, testReport,
 # ------------------------------------------------------------------------------
 
 # Save locations
-fileNameModel = "../results/SVM.sav"
+fileNameModel = "../results/SVM"
 fileNameResults = "../results/SVM.xlsx"
 
 # Load the train and test data
@@ -132,47 +132,57 @@ print(distTest)
 # Estimator to use
 estimator = SVC()
 
-# Hyperparameter combinations to test
-hyperparameters = { 'C': [0.001, 0.01, 0.1, 1.0, 10, 100, 1000],
-                    'kernel' : ['linear', 'poly', 'rbf'],
-                    'degree' : [3,4,5,6,7,8,9,10],
-                    'gamma' : ['auto', 'scale'],
-                    'coef0': [-4.0, -2.0, -1.0, -0.7, -0.5, -0.2, -0.1, 0.0, 0.1, 0.2, 0.5, 0.7, 1.0, 2.0, 4.0],
-                    'shrinking': [True, False]}
-
-print("\nPossible hyperparameter combinations:")
-print(str(combinations(hyperparameters)))
-
 # Algorithm Settings
-n_iter = 1000
+#n_iter = 42
 cv = 5
 scoring = "roc_auc"
 
-# Random Grid search
-bestHyperparameters  = randomGridSearch(estimator,
-                                        hyperparameters,
-                                        n_iter,
-                                        cv,
-                                        scoring,
-                                        trainFeatures,
-                                        trainLabels)
+# Combinations to test
+combinations =  [1.83, 1.84]#[1.80, 1.82, 1.84, 1.86]
+count = 0
 
-# Train classifier using optimal hyperparameter values
-clf = train(estimator, bestHyperparameters, trainFeatures, trainLabels)
+for value in combinations:
 
-# Check the score on the model on the training and test set
-print("\nScore on training set:")
-trainReport, trainAccuracy = score(clf, trainFeatures, trainLabels)
+    count = count + 1
 
-print("\nScore on test set:")
-testReport, testAccuracy = score(clf, testFeatures, testLabels)
+    print("-------------------------------------------------------------------")
+    print("\nIteration: " + str(count) + " of " + str(len(combinations)))
 
-# Save results
-saveResults(bestHyperparameters,
-            trainReport,
-            trainAccuracy,
-            testReport,
-            testAccuracy,
-            clf,
-            fileNameModel,
-            fileNameResults)
+    # Hyperparameter combinations to test
+    hyperparameters = { 'C': [value],
+                        'kernel' : ['linear'],
+                        'gamma' : ['auto', 'scale'],
+                        'shrinking': [True]}
+
+    print("\nHyperparameter combinations:")
+    print("Testing " + str(numberOfCombinations(hyperparameters)) + " of " + str(numberOfCombinations(hyperparameters)) + " combinations")
+
+    # Random Grid search
+    bestHyperparameters  = randomGridSearch(estimator,
+                                            hyperparameters,
+                                            numberOfCombinations(hyperparameters),
+                                            cv,
+                                            scoring,
+                                            trainFeatures,
+                                            trainLabels)
+
+    # Train classifier using optimal hyperparameter values
+    clf = train(estimator, bestHyperparameters, trainFeatures, trainLabels)
+
+    # Check the score on the model on the training and test set
+    print("\nScore on training set:")
+    trainReport, trainAccuracy = score(clf, trainFeatures, trainLabels)
+
+    print("\nScore on test set:")
+    testReport, testAccuracy = score(clf, testFeatures, testLabels)
+
+    # Save results
+    saveResults(count,
+                bestHyperparameters,
+                trainReport,
+                trainAccuracy,
+                testReport,
+                testAccuracy,
+                clf,
+                fileNameModel,
+                fileNameResults)

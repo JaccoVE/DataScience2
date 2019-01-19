@@ -143,10 +143,10 @@ estimator = LogisticRegression()
 # Hyperparameter combinations to test
 hyperparameters = { 'penalty': ['l2'],
                     'dual' : [False],
-                    'C' : [1.0, 10.0, 100.0],
+                    'C' : [0.001, 0.01, 0.1, 1.0, 10.0, 100.0, 1000.0],
                     'fit_intercept' : [True, False],
                     'solver' : ['newton-cg', 'lbfgs', 'sag'],
-                    'max_iter' : [100000000]}
+                    'max_iter' : [10000, 100000, 1000000, 10000000, 100000000]}
 
 # Algorithm Settings
 n_iter = 10000

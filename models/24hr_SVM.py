@@ -38,11 +38,11 @@ def randomGridSearch(estimator, hyperparameters, n_iter, cv, scoring, trainFeatu
     #                        n_jobs= 23)
 
     clf = GridSearchCV(estimator = estimator,
-                            param_grid = hyperparameters,
-                            cv = cv,
-                            scoring = scoring,
-                            verbose = 1,
-                            n_jobs= 23)
+                        param_grid = hyperparameters,
+                        cv = cv,
+                        scoring = scoring,
+                        verbose = 1,
+                        n_jobs= 23)
 
     # Train the numerous models
     clf.fit(trainFeatures, trainLabels)
@@ -139,22 +139,16 @@ print(distTest)
 estimator = SVC()
 
 # Hyperparameter combinations to test
-#hyperparameters = { 'C': [0.001, 0.01, 0.1, 1.0, 10.0, 100.0, 1000.0],
-#                    'kernel' : ['linear', 'poly', 'rbf', 'sigmoid'],
-#                    'degree' : [3, 4, 5, 6, 7],
-#                    'gamma' : ['auto', 'scale'],
-#                    'coef0' : np.arange(-10, 10, 1),
-#                    'shrinking': [True]}
-
-hyperparameters = { 'C': [0.001, 0.05, 0.1, 0.15, 1.0],
-                    'kernel' : ['poly'],
-                    'degree' : [3, 4, 5],
-                    'gamma' : ['scale'],
-                    'coef0' : [6.8, 6.9, 7.0, 7.1, 7.2],
+hyperparameters = { 'C': [0.001, 0.01, 0.1, 1.0, 10.0, 100.0, 1000.0],
+                    'kernel' : ['linear', 'poly', 'rbf', 'sigmoid'],
+                    'degree' : [3, 4, 5, 6, 7],
+                    'gamma' : ['auto', 'scale'],
+                    'coef0' : np.arange(-20, 20, 1),
                     'shrinking': [True]}
 
+
 # Algorithm Settings
-n_iter = 10000
+n_iter = 56000
 cv = 5
 scoring = "roc_auc"
 

@@ -6,7 +6,7 @@ from sklearn.externals import joblib
 from sklearn.model_selection import RandomizedSearchCV
 from sklearn.model_selection import GridSearchCV
 from sklearn import metrics
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.neural_network import MLPClassifier
 
 def distibution(labels):
 
@@ -107,17 +107,15 @@ def saveResults(bestHyperparameters, trainReport, trainAccuracy, testReport,
     print('\nResults saved as:')
     print(fileNameResults)
 
-    return "Files successfully saved"
-
 # ------------------------------------------------------------------------------
 
 # Save locations
-fileNameModel = "../results/24hr_randomForests.sav"
-fileNameResults = "../results/24hr_randomForests.xlsx"
+fileNameModel = "../results/12hr_MLP.sav"
+fileNameResults = "../results/12hr_MLP.xlsx"
 
 # Load the train and test data
-trainData = np.loadtxt("../data/24hr_train_data.txt")
-testData = np.loadtxt("../data/24hr_test_data.txt")
+trainData = np.loadtxt("../data/12hr_train_data.txt")
+testData = np.loadtxt("../data/12hr_test_data.txt")
 
 # Split the features and labels
 trainFeatures = trainData[:,1:45]
@@ -138,71 +136,71 @@ print("\nDistibution of the test data:")
 print(distTest)
 
 # Estimator to use
-estimator = RandomForestClassifier()
+estimator = MLPClassifier()
 
 # Hyperparameter combinations to test
-#hyperparameters = { 'n_estimators': [1000, 1500, 2000],
-#                    'criterion' : ["gini", "entropy"],
-#                    'max_depth': [1, 2, 4, 8, 12, 16, 24, 30, None],
-#                    'min_samples_split' : [2, 4, 6, 8, 12, 16, 24, 30],
-#                    'min_samples_leaf' : [1, 2, 4, 6, 8, 12, 16, 24, 30],
-#                    'max_features': ["sqrt", "log2", None],
-#                    'max_leaf_nodes': [2, 4, 6, 8, 12, 16, 24, 30, None],
-#                    'bootstrap' : [True, False]}
+#hyperparameters = { 'hidden_layer_sizes': np.arange(10, 200, 10),
+#                    'activation' : ['identity', 'logistic', 'tanh', 'relu'],
+#                    'solver' : ['lbfgs', 'sgd', 'adam'],
+#                    'alpha' : [0.00001, 0.0001, 0.001],
+#                    'learning_rate' : ['constant', 'invscaling', 'adaptive'],
+#                    'learning_rate_init': [0.01, 0.001, 0.0001],
+#                    'power_t' : [0.5],
+#                    'max_iter' : [500],
+#                    'momentum' : [0.9],
+#                    'beta_1' : [0.9]}
 
-#hyperparameters = { 'n_estimators': [1000, 1500, 2000],
-#                    'criterion' : ["entropy"],
-#                    'max_depth': [1, 2, 3, 4, 5, 6, 7, 8, 10, 12, 16, 24, 30, None],
-#                    'min_samples_split' : [2, 4, 6, 8, 12, 16, 24, 30],
-#                    'min_samples_leaf' : [1, 2, 4],
-#                    'max_features': ["sqrt"],
-#                    'max_leaf_nodes': [12, 16, 24, 30, None]}
+# Hyperparameter combinations to test
+#hyperparameters = { 'hidden_layer_sizes': np.arange(4, 50, 1),
+#                    'activation' : ['relu'],
+#                    'solver' : ['sgd'],
+#                    'alpha' : 10.0 ** -np.arange(1, 10),
+#                    'learning_rate' : ['constant'],
+#                    'learning_rate_init': [0.01, 0.001, 0.0001],
+#                    'power_t' : [0.5],
+#                    'max_iter' : [2000],
+#                    'random_state' : [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, None],
+#                    'momentum' : [0.9],
+#                    'beta_1' : [0.9]}
 
-#hyperparameters = { 'n_estimators': [500, 1000, 1500],
-#                    'criterion' : ["entropy"],
-#                    'max_depth': [12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24],
-#                    'min_samples_split' : [4, 5, 6, 7, 8],
-#                    'min_samples_leaf' : [2],
-#                    'max_features': ["sqrt"],
-#                    'max_leaf_nodes': [8, 9, 10, 11, 12, 13, 14, 15, 16]}
+#hyperparameters = { 'hidden_layer_sizes': np.arange(5, 15, 1),
+#                    'activation' : ['relu'],
+#                    'solver' : ['sgd'],
+#                    'alpha' : 10.0 ** -np.arange(5, 11),
+#                    'learning_rate' : ['constant'],
+#                    'learning_rate_init': [0.01, 0.001, 0.0001],
+#                    'power_t' : [0.4, 0.5, 0.6],
+#                    'max_iter' : [2500],
+#                    'random_state' : [4, 5, 6, 7, 8],
+#                    'momentum' : [0.9],
+#                    'beta_1' : [0.9]}
 
-#hyperparameters = { 'n_estimators': np.arange(10, 500, 20),
-#                    'criterion' : ["entropy"],
-#                    'max_depth': [15, 16, 17, 18, 19, 20],
-#                    'min_samples_split' : [2, 3, 4, 5, 6, 7],
-#                    'min_samples_leaf' : [2],
-#                    'max_features': ["sqrt"],
-#                    'max_leaf_nodes': [7, 8, 9, 10, 11, 12, 13]}
+#hyperparameters = { 'hidden_layer_sizes': [10],
+#                    'activation' : ['relu'],
+#                    'solver' : ['sgd'],
+#                    'alpha' : 10.0 ** -np.arange(6, 8),
+#                    'learning_rate' : ['constant'],
+#                    'learning_rate_init': [0.1, 0.01, 0.001],
+#                    'power_t' : [0.1, 0.2 ,0.3, 0.4, 0.5],
+#                    'max_iter' : [2000, 2500, 3000],
+#                    'random_state' : [4, 5, 6, 7, 8],
+#                    'momentum' : [0.7, 0.75, 0.8, 0.85, 0.9, 0.95],
+#                    'beta_1' : [0.7, 0.75, 0.8, 0.85, 0.9, 0.95]}
 
-#hyperparameters = { 'n_estimators': np.arange(10, 100, 5),
-#                    'criterion' : ["entropy"],
-#                    'max_depth': np.arange(1, 20, 1),
-#                    'min_samples_split' : [2, 3, 4],
-#                    'min_samples_leaf' : [2],
-#                    'max_features': ["sqrt"],
-#                    'max_leaf_nodes': [7, 8, 9, 10, 11, 12, 13]}
-
-#hyperparameters = { 'n_estimators': np.arange(40, 200, 5),
-#                    'criterion' : ["entropy"],
-#                    'max_depth': np.arange(1, 20, 1),
-#                    'min_samples_split' : [2, 3, 4, 5],
-#                    'min_samples_leaf' : [2],
-#                    'max_features': ["sqrt"],
-#                    'max_leaf_nodes': [7, 8, 9, 10, 11, 12, 13]}
-
-hyperparameters = { 'n_estimators': np.arange(45, 65, 1),
-                    'criterion' : ["entropy"],
-                    'max_depth': np.arange(10, 25, 1),
-                    'min_samples_split' : np.arange(2, 10, 1),
-                    'min_samples_leaf' : [2],
-                    'max_features': ["sqrt"],
-                    'max_leaf_nodes': np.arange(8, 14, 1)}
-
-print("\nPossible hyperparameter combinations:")
-print(str(numberOfCombinations(hyperparameters)))
+hyperparameters = { 'hidden_layer_sizes': [10],
+                    'activation' : ['relu'],
+                    'solver' : ['sgd'],
+                    'alpha' : [10.0 ** -7],
+                    'learning_rate' : ['constant'],
+                    'learning_rate_init': [0.01],
+                    'power_t' : [0.1, 0.2 ,0.3, 0.4, 0.5],
+                    'max_iter' : [2500, 3000],
+                    'random_state' : [4, 5, 6, 7, 8],
+                    'momentum' : [0.7, 0.75, 0.8, 0.85, 0.9, 0.95],
+                    'beta_1' : [0.7, 0.75, 0.8, 0.85, 0.9, 0.95]}
 
 # Algorithm Settings
-n_iter = numberOfCombinations(hyperparameters)
+n_iter = numberOfCombinations(hyperparameters) #1000
 cv = 5
 scoring = "roc_auc"
 

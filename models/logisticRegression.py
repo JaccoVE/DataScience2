@@ -4,6 +4,7 @@ import numpy as np
 import openpyxl
 from sklearn.externals import joblib
 from sklearn.model_selection import RandomizedSearchCV
+from sklearn.model_selection import GridSearchCV
 from sklearn import metrics
 from sklearn.linear_model import LogisticRegression
 
@@ -28,13 +29,20 @@ def randomGridSearch(estimator, hyperparameters, n_iter, cv, scoring, trainFeatu
     print("\nPerforming randomGridSearch...")
 
     # Randomzed grid search of the hyperparameters
-    clf = RandomizedSearchCV(estimator = estimator,
-                            param_distributions = hyperparameters,
-                            n_iter = n_iter,
+    #clf = RandomizedSearchCV(estimator = estimator,
+    #                        param_distributions = hyperparameters,
+    #                        n_iter = n_iter,
+    #                        cv = cv,
+    #                        scoring = scoring,
+    #                        verbose = 1,
+    #                        n_jobs= 23)
+
+    clf = GridSearchCV(estimator = estimator,
+                            param_grid = hyperparameters,
                             cv = cv,
                             scoring = scoring,
                             verbose = 1,
-                            n_jobs= -1)
+                            n_jobs= 23)
 
     # Train the numerous models
     clf.fit(trainFeatures, trainLabels)
@@ -78,14 +86,14 @@ def score(clf, features, labels):
     return report, accuracy
 
 # Function to write results to excel
-def saveResults(i, bestHyperparameters, trainReport, trainAccuracy, testReport,
+def saveResults(bestHyperparameters, trainReport, trainAccuracy, testReport,
             testAccuracy, clf, fileNameModel, fileNameResults):
 
     # save the model to disk
-    joblib.dump(clf, str(fileNameModel) + str(i) + ".sav")
+    joblib.dump(clf, fileNameModel)
 
     print('\nModel saved as:')
-    print(str(fileNameModel) + str(i) + ".sav")
+    print(fileNameModel)
 
     properties_model = [str(bestHyperparameters),
                         trainAccuracy,
@@ -104,7 +112,7 @@ def saveResults(i, bestHyperparameters, trainReport, trainAccuracy, testReport,
 # ------------------------------------------------------------------------------
 
 # Save locations
-fileNameModel = "../results/logisticRegression"
+fileNameModel = "../results/logisticRegression.sav"
 fileNameResults = "../results/logisticRegression.xlsx"
 
 # Load the train and test data
@@ -132,59 +140,47 @@ print(distTest)
 # Estimator to use
 estimator = LogisticRegression()
 
+# Hyperparameter combinations to test
+hyperparameters = { 'penalty': ['l2'],
+                    'dual' : [False],
+                    'C' : [1.0, 10.0, 100.0],
+                    'fit_intercept' : [True, False],
+                    'solver' : ['newton-cg', 'lbfgs', 'sag'],
+                    'max_iter' : [100000000]}
+
 # Algorithm Settings
-#n_iter = combinations(hyperparameters)
+n_iter = 10000
 cv = 5
 scoring = "roc_auc"
 
-# Combinations to test
-combinations =  np.arange(0, 100, 1)
-count = 0
+print("\nHyperparameter combinations:")
+print("Testing " + str(n_iter) + " of " + str(numberOfCombinations(hyperparameters)) + " combinations")
 
-for value in combinations:
+# Random Grid search
+bestHyperparameters  = randomGridSearch(estimator,
+                                        hyperparameters,
+                                        n_iter,
+                                        cv,
+                                        scoring,
+                                        trainFeatures,
+                                        trainLabels)
 
-    count = count + 1
+# Train classifier using optimal hyperparameter values
+clf = train(estimator, bestHyperparameters, trainFeatures, trainLabels)
 
-    print("-------------------------------------------------------------------")
-    print("\nIteration: " + str(count) + " of " + str(len(combinations)))
+# Check the score on the model on the training and test set
+print("\nScore on training set:")
+trainReport, trainAccuracy = score(clf, trainFeatures, trainLabels)
 
-    # Hyperparameter combinations to test
-    hyperparameters = { 'penalty': ['l2'],
-                        'dual' : [False],
-                        'C' : [value],
-                        'fit_intercept' : [True, False],
-                        'solver' : ['newton-cg', 'lbfgs', 'liblinear', 'sag', 'saga'],
-                        'max_iter' : [1000000000]}
+print("\nScore on test set:")
+testReport, testAccuracy = score(clf, testFeatures, testLabels)
 
-    print("\nHyperparameter combinations:")
-    print("Testing " + str(numberOfCombinations(hyperparameters)) + " of " + str(numberOfCombinations(hyperparameters)) + " combinations")
-
-    # Random Grid search
-    bestHyperparameters  = randomGridSearch(estimator,
-                                            hyperparameters,
-                                            numberOfCombinations(hyperparameters),
-                                            cv,
-                                            scoring,
-                                            trainFeatures,
-                                            trainLabels)
-
-    # Train classifier using optimal hyperparameter values
-    clf = train(estimator, bestHyperparameters, trainFeatures, trainLabels)
-
-    # Check the score on the model on the training and test set
-    print("\nScore on training set:")
-    trainReport, trainAccuracy = score(clf, trainFeatures, trainLabels)
-
-    print("\nScore on test set:")
-    testReport, testAccuracy = score(clf, testFeatures, testLabels)
-
-    # Save results
-    saveResults(count,
-                bestHyperparameters,
-                trainReport,
-                trainAccuracy,
-                testReport,
-                testAccuracy,
-                clf,
-                fileNameModel,
-                fileNameResults)
+# Save results
+saveResults(bestHyperparameters,
+            trainReport,
+            trainAccuracy,
+            testReport,
+            testAccuracy,
+            clf,
+            fileNameModel,
+            fileNameResults)

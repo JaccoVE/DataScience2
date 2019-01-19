@@ -154,7 +154,7 @@ hyperparameters = { 'C': [0.001, 0.05, 0.1, 0.15, 1.0],
                     'shrinking': [True]}
 
 # Algorithm Settings
-n_iter = 1000
+n_iter = 10000
 cv = 5
 scoring = "roc_auc"
 
@@ -164,7 +164,7 @@ print("Testing " + str(n_iter) + " of " + str(numberOfCombinations(hyperparamete
 # Random Grid search
 bestHyperparameters  = randomGridSearch(estimator,
                                         hyperparameters,
-                                        numberOfCombinations(hyperparameters),
+                                        n_iter,
                                         cv,
                                         scoring,
                                         trainFeatures,

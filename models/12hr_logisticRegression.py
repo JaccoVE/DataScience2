@@ -6,7 +6,7 @@ from sklearn.externals import joblib
 from sklearn.model_selection import RandomizedSearchCV
 from sklearn.model_selection import GridSearchCV
 from sklearn import metrics
-from sklearn.neighbors import KNeighborsClassifier
+from sklearn.linear_model import LogisticRegression
 
 def distibution(labels):
 
@@ -24,16 +24,25 @@ def numberOfCombinations(hyperparameters):
     return count
 
 # Function for a random hyperparameter gird search
-def randomGridSearch(estimator, hyperparameters, cv, scoring, trainFeatures, trainLabels):
+def randomGridSearch(estimator, hyperparameters, n_iter, cv, scoring, trainFeatures, trainLabels):
 
     print("\nPerforming randomGridSearch...")
 
+    # Randomzed grid search of the hyperparameters
+    #clf = RandomizedSearchCV(estimator = estimator,
+    #                        param_distributions = hyperparameters,
+    #                        n_iter = n_iter,
+    #                        cv = cv,
+    #                        scoring = scoring,
+    #                        verbose = 1,
+    #                        n_jobs= 23)
+
     clf = GridSearchCV(estimator = estimator,
-                        param_grid = hyperparameters,
-                        cv = cv,
-                        scoring = scoring,
-                        verbose = 1,
-                        n_jobs= 23)
+                            param_grid = hyperparameters,
+                            cv = cv,
+                            scoring = scoring,
+                            verbose = 1,
+                            n_jobs= 23)
 
     # Train the numerous models
     clf.fit(trainFeatures, trainLabels)
@@ -98,15 +107,17 @@ def saveResults(bestHyperparameters, trainReport, trainAccuracy, testReport,
     print('\nResults saved as:')
     print(fileNameResults)
 
+    return "Files successfully saved"
+
 # ------------------------------------------------------------------------------
 
 # Save locations
-fileNameModel = "../results/KNN.sav"
-fileNameResults = "../results/KNN.xlsx"
+fileNameModel = "../results/12hr_logisticRegression.sav"
+fileNameResults = "../results/12hr_logisticRegression.xlsx"
 
 # Load the train and test data
-trainData = np.loadtxt("../data/train_data.txt")
-testData = np.loadtxt("../data/test_data.txt")
+trainData = np.loadtxt("../data/12hr_train_data.txt")
+testData = np.loadtxt("../data/12hr_test_data.txt")
 
 # Split the features and labels
 trainFeatures = trainData[:,1:45]
@@ -127,30 +138,28 @@ print("\nDistibution of the test data:")
 print(distTest)
 
 # Estimator to use
-estimator = KNeighborsClassifier()
+estimator = LogisticRegression()
 
 # Hyperparameter combinations to test
-#hyperparameters = { 'n_neighbors': np.arange(1, 100, 1),
-#                    'algorithm' : ['auto', 'ball_tree', 'kd_tree', 'brute'],
-#                    'leaf_size' : np.arange(1, 100, 1),
-#                    'p' : [1, 2]}
-
-hyperparameters = { 'n_neighbors': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20],
-                    'weights' : ["uniform", "distance"],
-                    'algorithm' : ['auto', 'ball_tree', 'kd_tree', 'brute'],
-                    'leaf_size' : [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-                    'p' : [1, 2]}
+hyperparameters = { 'penalty': ['l2'],
+                    'dual' : [False],
+                    'C' : [1.0, 10.0, 100.0],
+                    'fit_intercept' : [True, False],
+                    'solver' : ['newton-cg', 'lbfgs', 'sag'],
+                    'max_iter' : [100000000]}
 
 # Algorithm Settings
+n_iter = 10000
 cv = 5
 scoring = "roc_auc"
 
 print("\nHyperparameter combinations:")
-print("Testing " + "all" + " of " + str(numberOfCombinations(hyperparameters)) + " combinations")
+print("Testing " + str(n_iter) + " of " + str(numberOfCombinations(hyperparameters)) + " combinations")
 
 # Random Grid search
 bestHyperparameters  = randomGridSearch(estimator,
                                         hyperparameters,
+                                        n_iter,
                                         cv,
                                         scoring,
                                         trainFeatures,

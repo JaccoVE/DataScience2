@@ -82,5 +82,5 @@ print("\nDistibution of the test data:")
 print(distTest)
 
 # Save the train and test data
-#np.savetxt("../data/train_data.txt", trainData)
-#np.savetxt("../data/test_data.txt", testData)
+#np.savetxt("../data/12hr_train_data.txt", trainData)
+#np.savetxt("../data/12hr_test_data.txt", testData)

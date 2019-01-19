@@ -110,12 +110,12 @@ def saveResults(bestHyperparameters, trainReport, trainAccuracy, testReport,
 # ------------------------------------------------------------------------------
 
 # Save locations
-fileNameModel = "../results/SVM.sav"
-fileNameResults = "../results/SVM.xlsx"
+fileNameModel = "../results/12hr_SVM.sav"
+fileNameResults = "../results/12hr_SVM.xlsx"
 
 # Load the train and test data
-trainData = np.loadtxt("../data/train_data.txt")
-testData = np.loadtxt("../data/test_data.txt")
+trainData = np.loadtxt("../data/12hr_train_data.txt")
+testData = np.loadtxt("../data/12hr_test_data.txt")
 
 # Split the features and labels
 trainFeatures = trainData[:,1:45]

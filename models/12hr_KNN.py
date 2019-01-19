@@ -6,7 +6,7 @@ from sklearn.externals import joblib
 from sklearn.model_selection import RandomizedSearchCV
 from sklearn.model_selection import GridSearchCV
 from sklearn import metrics
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.neighbors import KNeighborsClassifier
 
 def distibution(labels):
 
@@ -24,25 +24,16 @@ def numberOfCombinations(hyperparameters):
     return count
 
 # Function for a random hyperparameter gird search
-def randomGridSearch(estimator, hyperparameters, n_iter, cv, scoring, trainFeatures, trainLabels):
+def randomGridSearch(estimator, hyperparameters, cv, scoring, trainFeatures, trainLabels):
 
     print("\nPerforming randomGridSearch...")
 
-    # Randomzed grid search of the hyperparameters
-    #clf = RandomizedSearchCV(estimator = estimator,
-    #                        param_distributions = hyperparameters,
-    #                        n_iter = n_iter,
-    #                        cv = cv,
-    #                        scoring = scoring,
-    #                        verbose = 1,
-    #                        n_jobs= 23)
-
     clf = GridSearchCV(estimator = estimator,
-                            param_grid = hyperparameters,
-                            cv = cv,
-                            scoring = scoring,
-                            verbose = 1,
-                            n_jobs= 23)
+                        param_grid = hyperparameters,
+                        cv = cv,
+                        scoring = scoring,
+                        verbose = 1,
+                        n_jobs= 23)
 
     # Train the numerous models
     clf.fit(trainFeatures, trainLabels)
@@ -107,17 +98,15 @@ def saveResults(bestHyperparameters, trainReport, trainAccuracy, testReport,
     print('\nResults saved as:')
     print(fileNameResults)
 
-    return "Files successfully saved"
-
 # ------------------------------------------------------------------------------
 
 # Save locations
-fileNameModel = "../results/randomForests.sav"
-fileNameResults = "../results/randomForests.xlsx"
+fileNameModel = "../results/12hr_KNN.sav"
+fileNameResults = "../results/12hr_KNN.xlsx"
 
 # Load the train and test data
-trainData = np.loadtxt("../data/train_data.txt")
-testData = np.loadtxt("../data/test_data.txt")
+trainData = np.loadtxt("../data/12hr_train_data.txt")
+testData = np.loadtxt("../data/12hr_test_data.txt")
 
 # Split the features and labels
 trainFeatures = trainData[:,1:45]
@@ -138,49 +127,30 @@ print("\nDistibution of the test data:")
 print(distTest)
 
 # Estimator to use
-estimator = RandomForestClassifier()
+estimator = KNeighborsClassifier()
 
 # Hyperparameter combinations to test
-#hyperparameters = { 'n_estimators': [1000, 1500, 2000],
-#                    'criterion' : ["gini", "entropy"],
-#                    'max_depth': [1, 2, 4, 8, 12, 16, 24, 30, None],
-#                    'min_samples_split' : [2, 4, 6, 8, 12, 16, 24, 30],
-#                    'min_samples_leaf' : [1, 2, 4, 6, 8, 12, 16, 24, 30],
-#                    'max_features': ["sqrt", "log2", None],
-#                    'max_leaf_nodes': [2, 4, 6, 8, 12, 16, 24, 30, None],
-#                    'bootstrap' : [True, False]}
+#hyperparameters = { 'n_neighbors': np.arange(1, 100, 1),
+#                    'algorithm' : ['auto', 'ball_tree', 'kd_tree', 'brute'],
+#                    'leaf_size' : np.arange(1, 100, 1),
+#                    'p' : [1, 2]}
 
-#hyperparameters = { 'n_estimators': [2000],
-#                    'criterion' : ["gini", "entropy"],
-#                    'max_depth': [1, 2, 4, 8, 12, 16, 24, 30, None],
-#                    'min_samples_split' : [2, 4, 6, 8, 12, 16, 24, 30],
-#                    'min_samples_leaf' : [1, 2, 4, 6, 8, 12, 16, 24, 30],
-#                    'max_features': ["sqrt", "log2", None],
-#                    'max_leaf_nodes': [2, 4, 6, 8, 12, 16, 24, 30, None]}
-
-hyperparameters = { 'n_estimators': [2000, 5000],
-                    'criterion' : ["entropy"],
-                    'max_depth': [1, 2, 3, 4, 5, 6, 7, 8, 10, 12, 16, 24, 30, None],
-                    'min_samples_split' : [2],
-                    'min_samples_leaf' : [1],
-                    'max_features': ["sqrt"],
-                    'max_leaf_nodes': [12, 14, 16, 18, 20, 22, 24, None]}
-
-print("\nPossible hyperparameter combinations:")
-print(str(numberOfCombinations(hyperparameters)))
+hyperparameters = { 'n_neighbors': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20],
+                    'weights' : ["uniform", "distance"],
+                    'algorithm' : ['auto', 'ball_tree', 'kd_tree', 'brute'],
+                    'leaf_size' : [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+                    'p' : [1, 2]}
 
 # Algorithm Settings
-n_iter = 1000
 cv = 5
 scoring = "roc_auc"
 
 print("\nHyperparameter combinations:")
-print("Testing " + str(n_iter) + " of " + str(numberOfCombinations(hyperparameters)) + " combinations")
+print("Testing " + "all" + " of " + str(numberOfCombinations(hyperparameters)) + " combinations")
 
 # Random Grid search
 bestHyperparameters  = randomGridSearch(estimator,
                                         hyperparameters,
-                                        n_iter,
                                         cv,
                                         scoring,
                                         trainFeatures,

@@ -6,7 +6,7 @@ from sklearn.externals import joblib
 from sklearn.model_selection import RandomizedSearchCV
 from sklearn.model_selection import GridSearchCV
 from sklearn import metrics
-from sklearn.linear_model import LogisticRegression
+from sklearn.ensemble import RandomForestClassifier
 
 def distibution(labels):
 
@@ -112,12 +112,12 @@ def saveResults(bestHyperparameters, trainReport, trainAccuracy, testReport,
 # ------------------------------------------------------------------------------
 
 # Save locations
-fileNameModel = "../results/logisticRegression.sav"
-fileNameResults = "../results/logisticRegression.xlsx"
+fileNameModel = "../results/12hr_randomForests.sav"
+fileNameResults = "../results/12hr_randomForests.xlsx"
 
 # Load the train and test data
-trainData = np.loadtxt("../data/train_data.txt")
-testData = np.loadtxt("../data/test_data.txt")
+trainData = np.loadtxt("../data/12hr_train_data.txt")
+testData = np.loadtxt("../data/12hr_test_data.txt")
 
 # Split the features and labels
 trainFeatures = trainData[:,1:45]
@@ -138,18 +138,39 @@ print("\nDistibution of the test data:")
 print(distTest)
 
 # Estimator to use
-estimator = LogisticRegression()
+estimator = RandomForestClassifier()
 
 # Hyperparameter combinations to test
-hyperparameters = { 'penalty': ['l2'],
-                    'dual' : [False],
-                    'C' : [1.0, 10.0, 100.0],
-                    'fit_intercept' : [True, False],
-                    'solver' : ['newton-cg', 'lbfgs', 'sag'],
-                    'max_iter' : [100000000]}
+#hyperparameters = { 'n_estimators': [1000, 1500, 2000],
+#                    'criterion' : ["gini", "entropy"],
+#                    'max_depth': [1, 2, 4, 8, 12, 16, 24, 30, None],
+#                    'min_samples_split' : [2, 4, 6, 8, 12, 16, 24, 30],
+#                    'min_samples_leaf' : [1, 2, 4, 6, 8, 12, 16, 24, 30],
+#                    'max_features': ["sqrt", "log2", None],
+#                    'max_leaf_nodes': [2, 4, 6, 8, 12, 16, 24, 30, None],
+#                    'bootstrap' : [True, False]}
+
+#hyperparameters = { 'n_estimators': [2000],
+#                    'criterion' : ["gini", "entropy"],
+#                    'max_depth': [1, 2, 4, 8, 12, 16, 24, 30, None],
+#                    'min_samples_split' : [2, 4, 6, 8, 12, 16, 24, 30],
+#                    'min_samples_leaf' : [1, 2, 4, 6, 8, 12, 16, 24, 30],
+#                    'max_features': ["sqrt", "log2", None],
+#                    'max_leaf_nodes': [2, 4, 6, 8, 12, 16, 24, 30, None]}
+
+hyperparameters = { 'n_estimators': [2000, 5000],
+                    'criterion' : ["entropy"],
+                    'max_depth': [1, 2, 3, 4, 5, 6, 7, 8, 10, 12, 16, 24, 30, None],
+                    'min_samples_split' : [2],
+                    'min_samples_leaf' : [1],
+                    'max_features': ["sqrt"],
+                    'max_leaf_nodes': [12, 14, 16, 18, 20, 22, 24, None]}
+
+print("\nPossible hyperparameter combinations:")
+print(str(numberOfCombinations(hyperparameters)))
 
 # Algorithm Settings
-n_iter = 10000
+n_iter = 1000
 cv = 5
 scoring = "roc_auc"
 

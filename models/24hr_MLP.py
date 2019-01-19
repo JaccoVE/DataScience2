@@ -110,12 +110,12 @@ def saveResults(bestHyperparameters, trainReport, trainAccuracy, testReport,
 # ------------------------------------------------------------------------------
 
 # Save locations
-fileNameModel = "../results/12hr_MLP.sav"
-fileNameResults = "../results/12hr_MLP.xlsx"
+fileNameModel = "../results/24hr_MLP.sav"
+fileNameResults = "../results/24hr_MLP.xlsx"
 
 # Load the train and test data
-trainData = np.loadtxt("../data/12hr_train_data.txt")
-testData = np.loadtxt("../data/12hr_test_data.txt")
+trainData = np.loadtxt("../data/24hr_train_data.txt")
+testData = np.loadtxt("../data/24hr_test_data.txt")
 
 # Split the features and labels
 trainFeatures = trainData[:,1:45]
@@ -139,84 +139,12 @@ print(distTest)
 estimator = MLPClassifier()
 
 # Hyperparameter combinations to test
-#hyperparameters = { 'hidden_layer_sizes': np.arange(10, 200, 10),
-#                    'activation' : ['identity', 'logistic', 'tanh', 'relu'],
-#                    'solver' : ['lbfgs', 'sgd', 'adam'],
-#                    'alpha' : [0.00001, 0.0001, 0.001],
-#                    'learning_rate' : ['constant', 'invscaling', 'adaptive'],
-#                    'learning_rate_init': [0.01, 0.001, 0.0001],
-#                    'power_t' : [0.5],
-#                    'max_iter' : [500],
-#                    'momentum' : [0.9],
-#                    'beta_1' : [0.9]}
-
-# Hyperparameter combinations to test
-#hyperparameters = { 'hidden_layer_sizes': np.arange(4, 50, 1),
-#                    'activation' : ['relu'],
-#                    'solver' : ['sgd'],
-#                    'alpha' : 10.0 ** -np.arange(1, 10),
-#                    'learning_rate' : ['constant'],
-#                    'learning_rate_init': [0.01, 0.001, 0.0001],
-#                    'power_t' : [0.5],
-#                    'max_iter' : [2000],
-#                    'random_state' : [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, None],
-#                    'momentum' : [0.9],
-#                    'beta_1' : [0.9]}
-
 #hyperparameters = { 'hidden_layer_sizes': np.arange(5, 15, 1),
-#                    'activation' : ['relu'],
-#                    'solver' : ['sgd'],
-#                    'alpha' : 10.0 ** -np.arange(5, 11),
-#                    'learning_rate' : ['constant'],
-#                    'learning_rate_init': [0.01, 0.001, 0.0001],
-#                    'power_t' : [0.4, 0.5, 0.6],
-#                    'max_iter' : [2500],
-#                    'random_state' : [4, 5, 6, 7, 8],
-#                    'momentum' : [0.9],
-#                    'beta_1' : [0.9]}
-
-#hyperparameters = { 'hidden_layer_sizes': [10],
 #                    'activation' : ['relu'],
 #                    'solver' : ['sgd'],
 #                    'alpha' : 10.0 ** -np.arange(6, 8),
 #                    'learning_rate' : ['constant'],
-#                    'learning_rate_init': [0.1, 0.01, 0.001],
-#                    'power_t' : [0.1, 0.2 ,0.3, 0.4, 0.5],
-#                    'max_iter' : [2000, 2500, 3000],
-#                    'random_state' : [4, 5, 6, 7, 8],
-#                    'momentum' : [0.7, 0.75, 0.8, 0.85, 0.9, 0.95],
-#                    'beta_1' : [0.7, 0.75, 0.8, 0.85, 0.9, 0.95]}
-
-#hyperparameters = { 'hidden_layer_sizes': [10],
-#                    'activation' : ['relu'],
-#                    'solver' : ['sgd'],
-#                    'alpha' : [10.0 ** -7],
-#                    'learning_rate' : ['constant'],
-#                    'learning_rate_init': [0.01],
-#                    'power_t' : [0.1, 0.2 ,0.3, 0.4, 0.5],
-#                    'max_iter' : [2500, 3000],
-#                    'random_state' : [4, 5, 6, 7, 8],
-#                    'momentum' : [0.7, 0.75, 0.8, 0.85, 0.9, 0.95],
-#                    'beta_1' : [0.7, 0.75, 0.8, 0.85, 0.9, 0.95]}
-
-#hyperparameters = { 'hidden_layer_sizes': [10],
-#                    'activation' : ['relu'],
-#                    'solver' : ['sgd'],
-#                    'alpha' : [10.0 ** -7],
-#                    'learning_rate' : ['constant'],
-#                    'learning_rate_init': [0.01],
-#                    'power_t' : [0.5],
-#                    'max_iter' : [3000],
-#                    'random_state' : [4, 5, 6, 7, 8],
-#                    'momentum' : [0.8, 0.85, 0.9, 0.95],
-#                    'beta_1' : [0.85, 0.9, 0.95]}
-
-#hyperparameters = { 'hidden_layer_sizes': [10],
-#                    'activation' : ['relu'],
-#                    'solver' : ['sgd'],
-#                    'alpha' : [10.0 ** -7],
-#                    'learning_rate' : ['constant'],
-#                    'learning_rate_init': [0.01],
+#                    'learning_rate_init': [0.01, 0.001],
 #                    'power_t' : [0.5],
 #                    'max_iter' : [3000],
 #                    'random_state' : [4, 5, 6, 7, 8],
@@ -226,23 +154,11 @@ estimator = MLPClassifier()
 #hyperparameters = { 'hidden_layer_sizes': [10],
 #                    'activation' : ['relu'],
 #                    'solver' : ['sgd'],
-#                    'alpha' : [10.0 ** -7],
+#                    'alpha' : 10.0 ** -np.arange(3, 8),
 #                    'learning_rate' : ['constant'],
-#                    'learning_rate_init': [0.01],
+#                    'learning_rate_init': [0.01, 0.001, 0.0001, 0.00001],
 #                    'power_t' : [0.5],
 #                    'max_iter' : [3000],
-#                    'random_state' : [4, 5, 6, 7, 8],
-#                    'momentum' : [0.9, 0.95],
-#                    'beta_1' : [0.9, 0.95]}
-
-#hyperparameters = { 'hidden_layer_sizes': [10],
-#                    'activation' : ['relu'],
-#                    'solver' : ['sgd'],
-#                    'alpha' : [10.0 ** -7],
-#                    'learning_rate' : ['constant'],
-#                    'learning_rate_init': [0.0001],
-#                    'power_t' : [0.5],
-#                    'max_iter' : [1000000],
 #                    'random_state' : [4, 5, 6, 7, 8],
 #                    'momentum' : np.arange(0.9, 0.99, 0.01),
 #                    'beta_1' : np.arange(0.9, 0.99, 0.01)}
@@ -254,10 +170,10 @@ estimator = MLPClassifier()
 #                    'learning_rate' : ['constant'],
 #                    'learning_rate_init': [0.0001],
 #                    'power_t' : [0.5],
-#                    'max_iter' : [1000000],
-#                    'random_state' : [6],
-#                    'momentum' : [0.98],
-#                    'beta_1' : [0.98]}
+#                    'max_iter' : [3000],
+#                    'random_state' : [5, 6],
+#                    'momentum' : [0.97],
+#                    'beta_1' : [0.9]}
 
 #hyperparameters = { 'hidden_layer_sizes': [10],
 #                    'activation' : ['relu'],
@@ -266,9 +182,10 @@ estimator = MLPClassifier()
 #                    'learning_rate' : ['constant'],
 #                    'learning_rate_init': [0.0001],
 #                    'power_t' : [0.5],
-#                    'max_iter' : [1000000],
-#                    'random_state' : [6],
-#                    'momentum' : [0.9],
+#                    'max_iter' : [10000],
+#                    'random_state' : [5, 6],
+#                    'tol' : [10.0 ** -4, 10.0 ** -5, 10.0 ** -6],
+#                    'momentum' : [0.97],
 #                    'beta_1' : [0.9]}
 
 #hyperparameters = { 'hidden_layer_sizes': [10],
@@ -276,23 +193,12 @@ estimator = MLPClassifier()
 #                    'solver' : ['sgd'],
 #                    'alpha' : [10.0 ** -7],
 #                    'learning_rate' : ['constant'],
-#                    'learning_rate_init': [0.01],
+#                    'learning_rate_init': [0.0001],
 #                    'power_t' : [0.5],
-#                    'max_iter' : [3000],
-#                    'random_state' : [6],
-#                    'momentum' : [0.9],
-#                    'beta_1' : [0.9]}
-
-#hyperparameters = { 'hidden_layer_sizes': [10],
-#                    'activation' : ['relu'],
-#                    'solver' : ['sgd'],
-#                    'alpha' : [10.0 ** -7],
-#                    'learning_rate' : ['constant'],
-#                    'learning_rate_init': [0.01],
-#                    'power_t' : [0.5],
-#                    'max_iter' : np.arange(100, 10000, 100),
-#                    'random_state' : [6],
-#                    'momentum' : [0.9],
+#                    'max_iter' : [10000],
+#                    'random_state' : [5, 6],
+#                    'tol' : [10.0 ** -4, 10.0 ** -5, 10.0 ** -6],
+#                    'momentum' : [0.97],
 #                    'beta_1' : [0.9]}
 
 hyperparameters = { 'hidden_layer_sizes': [10],
@@ -300,13 +206,13 @@ hyperparameters = { 'hidden_layer_sizes': [10],
                     'solver' : ['sgd'],
                     'alpha' : [10.0 ** -7],
                     'learning_rate' : ['constant'],
-                    'learning_rate_init': [0.01],
+                    'learning_rate_init': [0.0001],
                     'power_t' : [0.5],
-                    'max_iter' : [3000],
-                    'random_state' : [6],
-                    'momentum' : [0.9],
+                    'max_iter' : [1000000],
+                    'random_state' : [5, 6],
+                    'tol' : [10.0 ** -4, 10.0 ** -5, 10.0 ** -6],
+                    'momentum' : [0.97],
                     'beta_1' : [0.9]}
-
 
 # Algorithm Settings
 n_iter = numberOfCombinations(hyperparameters) #1000

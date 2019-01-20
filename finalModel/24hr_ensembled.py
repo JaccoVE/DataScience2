@@ -129,40 +129,38 @@ scoring = "roc_auc"
 
 # KNN ---------------------------------------------------------------------------------------------------
 print("\nKNN:")
-
 hyperparameters_KNN = {'algorithm': 'auto', 'leaf_size': 1, 'n_neighbors': 15, 'p': 1, 'weights': 'distance'}
-clf = estimator_KNN.set_params( **hyperparameters_KNN)
+estimator_KNN = estimator_KNN.set_params( **hyperparameters_KNN)
 cross_score_KNN = cross_val_score(clf, trainFeatures, trainLabels, cv=cv, n_jobs = -1, scoring = scoring)
 print("ROC_AUC: %0.2f (+/- %0.2f)" % (cross_score_KNN.mean(), cross_score_KNN.std() * 2))
 
 # logisticRegression -------------------------------------------------------------------------------------
 print("\nlogisticRegression:")
-
 hyperparameters_logisticRegression = {'C': 1.0, 'dual': False, 'fit_intercept': True, 'max_iter': 100000000, 'penalty': 'l2', 'solver': 'newton-cg'}
-clf = estimator_logisticRegression.set_params( **hyperparameters_logisticRegression)
+estimator_logisticRegression = estimator_logisticRegression.set_params( **hyperparameters_logisticRegression)
 cross_score_logisticRegression = cross_val_score(clf, trainFeatures, trainLabels, cv=cv, n_jobs = -1, scoring = scoring)
 print("ROC_AUC: %0.2f (+/- %0.2f)" % (cross_score_logisticRegression.mean(), cross_score_logisticRegression.std() * 2))
 
 # MLP ---------------------------------------------------------------------------------------------------
 print("\nMLP:")
-
 hyperparameters_MLP = {'activation': 'relu', 'alpha': 1e-07, 'beta_1': 0.9, 'hidden_layer_sizes': 10, 'learning_rate': 'constant', 'learning_rate_init': 0.0001, 'max_iter': 10000, 'momentum': 0.97, 'power_t': 0.5, 'random_state': 5, 'solver': 'sgd', 'tol': 1e-05}
-clf = estimator_MLP.set_params( **hyperparameters_MLP)
+estimator_MLP = estimator_MLP.set_params( **hyperparameters_MLP)
 cross_score_MLP = cross_val_score(clf, trainFeatures, trainLabels, cv=cv, n_jobs = -1, scoring = scoring)
 print("ROC_AUC: %0.2f (+/- %0.2f)" % (cross_score_MLP.mean(), cross_score_MLP.std() * 2))
 
 # randomForest --------------------------------------------------------------------------------------------
 print("\nrandomForest:")
-
 hyperparameters_randomForest = {'criterion': 'entropy', 'max_depth': 15, 'max_features': 'sqrt', 'max_leaf_nodes': 11, 'min_samples_leaf': 2, 'min_samples_split': 2, 'n_estimators': 50}
-clf = estimator_randomForest.set_params( **hyperparameters_randomForest)
+estimator_randomForest = estimator_randomForest.set_params( **hyperparameters_randomForest)
 cross_score_randomForest = cross_val_score(clf, trainFeatures, trainLabels, cv=cv, n_jobs = -1, scoring = scoring)
 print("ROC_AUC: %0.2f (+/- %0.2f)" % (cross_score_randomForest.mean(), cross_score_randomForest.std() * 2))
 
 # SVM ---------------------------------------------------------------------------------------------------
 print("\nSVM:")
-
 hyperparameters_SVM = {'C': 0.01, 'coef0': -15, 'degree': 3, 'gamma': 'scale', 'kernel': 'poly', 'shrinking': True}
-clf = estimator_SVM.set_params( **hyperparameters_SVM)
+estimator_SVM = estimator_SVM.set_params( **hyperparameters_SVM)
 cross_score_SVM = cross_val_score(clf, trainFeatures, trainLabels, cv=cv, n_jobs = -1, scoring = scoring)
 print("ROC_AUC: %0.2f (+/- %0.2f)" % (cross_score_SVM.mean(), cross_score_SVM.std() * 2))
+
+# Perform voting
+estimators = [estimator_KNN, estimator_logisticRegression, estimator_MLP, estimator_randomForest, estimator_SVM]

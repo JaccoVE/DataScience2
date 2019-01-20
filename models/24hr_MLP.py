@@ -201,17 +201,30 @@ estimator = MLPClassifier()
 #                    'momentum' : [0.97],
 #                    'beta_1' : [0.9]}
 
+#hyperparameters = { 'hidden_layer_sizes': [10],
+#                    'activation' : ['relu'],
+#                    'solver' : ['sgd'],
+#                    'alpha' : [10.0 ** -7],
+#                    'learning_rate' : ['constant'],
+#                    'learning_rate_init': [0.0001],
+#                    'power_t' : [0.5],
+#                    'max_iter' : [1000000],
+#                    'random_state' : [5, 6],
+#                    'tol' : [10.0 ** -4, 10.0 ** -5, 10.0 ** -6],
+#                    'momentum' : [0.97],
+#                    'beta_1' : [0.9]}
+
 hyperparameters = { 'hidden_layer_sizes': [10],
                     'activation' : ['relu'],
-                    'solver' : ['sgd'],
-                    'alpha' : [10.0 ** -7],
+                    'solver' : ['lbfgs'],
+                    'alpha' : 10.0 ** -np.arange(4, 8),
                     'learning_rate' : ['constant'],
-                    'learning_rate_init': [0.0001],
+                    'learning_rate_init': [0.1, 0.01, 0.001, 0.0001],
                     'power_t' : [0.5],
-                    'max_iter' : [1000000],
-                    'random_state' : [5, 6],
+                    'max_iter' : np.arange(500, 5000, 200),
+                    'random_state' : np.arange(4, 8, 1),
                     'tol' : [10.0 ** -4, 10.0 ** -5, 10.0 ** -6],
-                    'momentum' : [0.97],
+                    'momentum' : [0.9],
                     'beta_1' : [0.9]}
 
 # Algorithm Settings

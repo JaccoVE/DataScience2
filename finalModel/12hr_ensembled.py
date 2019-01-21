@@ -5,6 +5,7 @@ import openpyxl
 from sklearn.externals import joblib
 from sklearn import metrics
 from sklearn.model_selection import cross_val_score
+import statistics
 
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.linear_model import LogisticRegression
@@ -27,72 +28,145 @@ def numberOfCombinations(hyperparameters):
 
     return count
 
+# Function for training
+def train(estimators, trainFeatures, trainLabels):
+
+    print("\nTraining estimators with best hyperparameter...")
+
+    trainedEstimators = []
+
+    # Train the models
+    for estimator in estimators:
+        trainedEstimator = estimator.fit(trainFeatures, trainLabels)
+        trainedEstimators.append(trainedEstimator)
+
+    print("done\n")
+
+    return trainedEstimators
+
 # Function for analyzing the performance/score of the model
-def score(clf, features, labels):
+def score(estimators, features, labels):
 
-    print("\nEvaluating the score of the model...")
+    reportEstimators = []
+    accuracyEstimators = []
+    roc_aucEstimators = []
+    count = 0
 
-    predictions = clf.predict(features)
+    # Determine the performance of each estimator
+    for estimator in estimators:
+        count = count + 1
+        print("\nEstimator " + str(count) + ":")
+        predictions = estimator.predict(features)
 
-    report = metrics.classification_report(labels, predictions)
-    print (report)
+        report = metrics.classification_report(labels, predictions)
+        reportEstimators.append(report)
+        print (report)
 
-    accuracy = round(metrics.accuracy_score(labels, predictions), 3)
-    print ("Overall Accuracy:", accuracy)
+        accuracy = round(metrics.accuracy_score(labels, predictions), 3)
+        accuracyEstimators.append(accuracy)
+        print ("Accuracy:", accuracy)
 
-    return report, accuracy
+        roc_auc = round(metrics.roc_auc_score(labels, predictions), 3)
+        roc_aucEstimators.append(roc_auc)
+        print ("ROC_AUC:", roc_auc)
+
+    return reportEstimators, accuracyEstimators, roc_aucEstimators
 
 # Method: Voting
-def voting(predModels):
+def scoreEnsembledVoting(estimators, features, labels):
 
-    predModelsBin = predModels
+    predictions = np.zeros((features.shape[0], len(estimators)))
 
-    for pred in predModelsBin:
-        nrClassOne = np.count_nonzero(predModelsBin[pred,:])
+    column = 0
+
+    # Make a prediction for each data point with each model
+    for estimator in estimators:
+        prediction = estimator.predict(features)
+        predictions[:,column] = prediction
+
+        column = column + 1
+
+    predictionEnsembled = []
+
+    for row in range(0, (features.shape[0])):
+        nrClassOne = np.count_nonzero(predictions[row,:])
         if nrClassOne >= 3:
-            predModelsBin[pred,5] = 1
+            predictionEnsembled.append(1)
         else:
-            predModelsBin[pred,5] = 0
+            predictionEnsembled.append(0)
 
-  return print("Voting finished!"), predModelsBin
+    report = metrics.classification_report(labels, predictionEnsembled)
+    print (report)
+
+    accuracy = round(metrics.accuracy_score(labels, predictionEnsembled), 3)
+    print ("Accuracy:", accuracy)
+
+    roc_auc = round(metrics.roc_auc_score(labels, predictionEnsembled), 3)
+    print ("ROC_AUC:", roc_auc)
+
+    return report, accuracy, roc_auc
 
 # Method: Averaging
-def averaging(predModels, threshold):
+def scoreEnsembledAveraging(estimators, features, labels):
 
-    predModelsProb = predModels
+    probabilities = np.zeros((features.shape[0], len(estimators)))
 
-    for pred in predModelsProb:
-        predModelsProb[pred,5] = mean(predModelsProb[pred,:])
-        if predModelsProb[pred,5] >= threshold:
-            predModelsProb[pred,6] = 1
+    column = 0
+
+    # Make a prediction for each data point with each model
+    for estimator in estimators:
+        probability = estimator.predict_proba(features)[:,0]
+        probabilities[:,column] = probability
+
+        column = column + 1
+
+    predictionEnsembled = []
+
+    for row in range(0, (features.shape[0])):
+        probabilityAvg = statistics.mean(probabilities[row,:])
+        if probabilityAvg >= 0.6:
+            predictionEnsembled.append(0)
         else:
-            predModelsProb[pred,6] = 0
+            predictionEnsembled.append(1)
 
-    return print("Averiging finished!", predModelsProb)
+    report = metrics.classification_report(labels, predictionEnsembled)
+    print (report)
+
+    accuracy = round(metrics.accuracy_score(labels, predictionEnsembled), 3)
+    print ("Accuracy:", accuracy)
+
+    roc_auc = round(metrics.roc_auc_score(labels, predictionEnsembled), 3)
+    print ("ROC_AUC:", roc_auc)
+
+    return report, accuracy, roc_auc
 
 # Function to write results to excel
-def saveResults(bestHyperparameters, trainReport, trainAccuracy, testReport,
-            testAccuracy, clf, fileNameModel, fileNameResults):
+def saveResults(trainReport, trainAccuracy, trainROC_AUC,
+                testReport, testAccuracy, testROC_AUC,
+                estimators, fileNameResults):
 
-    # save the model to disk
-    joblib.dump(clf, fileNameModel)
+    for i in range(0, len(estimators)):
+        columns = [str(estimators[i]),
+                str(trainReport[i]),
+                str(testReport[i]),
+                trainAccuracy[i],
+                testAccuracy[i],
+                trainROC_AUC[i],
+                testROC_AUC[i]]
 
-    print('\nModel saved as:')
-    print(fileNameModel)
+        book = openpyxl.load_workbook(fileNameResults)
+        sheet = book.active
+        sheet.append(columns)
+        book.save(fileNameResults)
 
-    properties_model = [str(bestHyperparameters),
-                        trainAccuracy,
-                        testAccuracy]
-
-    book = openpyxl.load_workbook(fileNameResults)
-    sheet = book.active
-    sheet.append(properties_model)
-    book.save(fileNameResults)
 
     print('\nResults saved as:')
     print(fileNameResults)
 
 # ------------------------------------------------------------------------------
+
+# Save locations
+fileNameResults = "../results/12hr_ensembled.xlsx"
 
 # Load the train and test data
 trainData = np.loadtxt("../data/12hr_train_data.txt")
@@ -121,7 +195,7 @@ estimator_KNN = KNeighborsClassifier()
 estimator_logisticRegression = LogisticRegression()
 estimator_MLP = MLPClassifier()
 estimator_randomForest = RandomForestClassifier()
-estimator_SVM = SVC()
+estimator_SVM = SVC(probability = True)
 
 # Algorithm Settings
 cv = 5
@@ -131,36 +205,87 @@ scoring = "roc_auc"
 print("\nKNN:")
 hyperparameters_KNN = {'algorithm': 'auto', 'leaf_size': 1, 'n_neighbors': 10, 'p': 2}
 estimator_KNN = estimator_KNN.set_params( **hyperparameters_KNN)
-cross_score_KNN = cross_val_score(clf, trainFeatures, trainLabels, cv=cv, n_jobs = -1, scoring = scoring)
+cross_score_KNN = cross_val_score(estimator_KNN, trainFeatures, trainLabels, cv=cv, n_jobs = -1, scoring = scoring)
 print("ROC_AUC: %0.2f (+/- %0.2f)" % (cross_score_KNN.mean(), cross_score_KNN.std() * 2))
 
 # logisticRegression -------------------------------------------------------------------------------------
 print("\nlogisticRegression:")
 hyperparameters_logisticRegression = {'C': 10.0, 'dual': False, 'fit_intercept': True, 'max_iter': 100000000, 'penalty': 'l2', 'solver': 'newton-cg'}
 estimator_logisticRegression = estimator_logisticRegression.set_params( **hyperparameters_logisticRegression)
-cross_score_logisticRegression = cross_val_score(clf, trainFeatures, trainLabels, cv=cv, n_jobs = -1, scoring = scoring)
+cross_score_logisticRegression = cross_val_score(estimator_logisticRegression, trainFeatures, trainLabels, cv=cv, n_jobs = -1, scoring = scoring)
 print("ROC_AUC: %0.2f (+/- %0.2f)" % (cross_score_logisticRegression.mean(), cross_score_logisticRegression.std() * 2))
 
 # MLP ---------------------------------------------------------------------------------------------------
 print("\nMLP:")
-hyperparameters_MLP = {'activation': 'relu', 'alpha': 1e-07, 'beta_1': 0.9, 'hidden_layer_sizes': 10, 'learning_rate': 'constant', 'learning_rate_init': 0.01, 'max_iter': 3000, 'momentum': 0.9, 'power_t': 0.5, 'random_state': 6, 'solver': 'sgd'}
+hyperparameters_MLP = {'activation': 'relu', 'alpha':  1e-7, 'beta_1': 0.9, 'hidden_layer_sizes': 10, 'learning_rate': 'constant', 'learning_rate_init': 0.01, 'max_iter': 3000, 'momentum': 0.9, 'power_t': 0.5, 'random_state': 6, 'solver': 'sgd'}
 estimator_MLP = estimator_MLP.set_params( **hyperparameters_MLP)
-cross_score_MLP = cross_val_score(clf, trainFeatures, trainLabels, cv=cv, n_jobs = -1, scoring = scoring)
+cross_score_MLP = cross_val_score(estimator_MLP, trainFeatures, trainLabels, cv=cv, n_jobs = -1, scoring = scoring)
 print("ROC_AUC: %0.2f (+/- %0.2f)" % (cross_score_MLP.mean(), cross_score_MLP.std() * 2))
 
 # randomForest --------------------------------------------------------------------------------------------
 print("\nrandomForest:")
 hyperparameters_randomForest = {'criterion': 'entropy', 'max_depth': 4, 'max_features': 'sqrt', 'max_leaf_nodes': 16, 'min_samples_leaf': 1, 'min_samples_split': 2, 'n_estimators': 2000}
 estimator_randomForest = estimator_randomForest.set_params( **hyperparameters_randomForest)
-cross_score_randomForest = cross_val_score(clf, trainFeatures, trainLabels, cv=cv, n_jobs = -1, scoring = scoring)
+cross_score_randomForest = cross_val_score(estimator_randomForest, trainFeatures, trainLabels, cv=cv, n_jobs = -1, scoring = scoring)
 print("ROC_AUC: %0.2f (+/- %0.2f)" % (cross_score_randomForest.mean(), cross_score_randomForest.std() * 2))
 
 # SVM ---------------------------------------------------------------------------------------------------
 print("\nSVM:")
 hyperparameters_SVM = {'C': 0.1, 'coef0': 7.0, 'degree': 3, 'gamma': 'scale', 'kernel': 'poly', 'shrinking': True}
 estimator_SVM = estimator_SVM.set_params( **hyperparameters_SVM)
-cross_score_SVM = cross_val_score(clf, trainFeatures, trainLabels, cv=cv, n_jobs = -1, scoring = scoring)
+cross_score_SVM = cross_val_score(estimator_SVM, trainFeatures, trainLabels, cv=cv, n_jobs = -1, scoring = scoring)
 print("ROC_AUC: %0.2f (+/- %0.2f)" % (cross_score_SVM.mean(), cross_score_SVM.std() * 2))
 
-# Perform voting
+# Individual Models ---------------------------------------------------------------------------------------------------
+# Train the estimators using optimal hyperparameter values
 estimators = [estimator_KNN, estimator_logisticRegression, estimator_MLP, estimator_randomForest, estimator_SVM]
+estimators = train(estimators, trainFeatures, trainLabels)
+
+# Check the score of each individual model on the training and test set
+print("\n\nIndividual models:")
+print("\nScore on training set:")
+trainReport, trainAccuracy, trainROC_AUC = score(estimators, trainFeatures, trainLabels)
+
+print("\nScore on test set:")
+testReport, testAccuracy, testROC_AUC = score(estimators, testFeatures, testLabels)
+
+# EnsembledVoting ---------------------------------------------------------------------------------------------------
+# Check the score of the ensembled models using voting on the training and test set
+print("\n\nEnsembled Voting:")
+print("\nScore on training set:")
+trainReportEnsembled, trainAccuracyEnsembled, trainROC_AUCEnsembled = scoreEnsembledVoting(estimators, trainFeatures, trainLabels)
+
+print("\nScore on test set:")
+testReportEnsembled, testAccuracyEnsembled, testROC_AUCEnsembled = scoreEnsembledVoting(estimators, testFeatures, testLabels)
+
+# Add the results of the ensembled models to the individual results
+trainReport.append(trainReportEnsembled)
+trainAccuracy.append(trainAccuracyEnsembled)
+trainROC_AUC.append(trainROC_AUCEnsembled)
+testReport.append(testReportEnsembled)
+testAccuracy.append(testAccuracyEnsembled)
+testROC_AUC.append(testROC_AUCEnsembled)
+
+# EnsembledAveraging ---------------------------------------------------------------------------------------------------
+# Check the score of the ensembled models using voting on the training and test set
+print("\n\nEnsembled Averaging:")
+print("\nScore on training set:")
+trainReportEnsembled, trainAccuracyEnsembled, trainROC_AUCEnsembled = scoreEnsembledAveraging(estimators, trainFeatures, trainLabels)
+
+print("\nScore on test set:")
+testReportEnsembled, testAccuracyEnsembled, testROC_AUCEnsembled = scoreEnsembledAveraging(estimators, testFeatures, testLabels)
+
+# Add the results of the ensembled models to the individual results
+trainReport.append(trainReportEnsembled)
+trainAccuracy.append(trainAccuracyEnsembled)
+trainROC_AUC.append(trainROC_AUCEnsembled)
+testReport.append(testReportEnsembled)
+testAccuracy.append(testAccuracyEnsembled)
+testROC_AUC.append(testROC_AUCEnsembled)
+estimators.append("ensembledVoting")
+estimators.append("ensembledAveraging")
+
+# Save the results of the ensembled models
+saveResults(trainReport, trainAccuracy, trainROC_AUC,
+            testReport, testAccuracy, testROC_AUC,
+            estimators, fileNameResults)

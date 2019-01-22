@@ -173,10 +173,10 @@ trainData = np.loadtxt("../data/12hr_train_data.txt")
 testData = np.loadtxt("../data/12hr_test_data.txt")
 
 # Split the features and labels
-trainFeatures = trainData[:,1:45]
+trainFeaturesAll = trainData[:,1:45]
 trainLabels = trainData[:,0].astype(int)
 
-testFeatures = testData[:,1:45]
+testFeaturesAll = testData[:,1:45]
 testLabels = testData[:,0].astype(int)
 
 # Check the data distibution
@@ -200,6 +200,195 @@ estimator_SVM = SVC(probability = True)
 # Algorithm Settings
 cv = 5
 scoring = "roc_auc"
+
+trainFeatures = trainFeaturesAll
+testFeatures = testFeaturesAll
+
+#---------------------------------------------------------------------------
+
+# leave one out
+#for i in range(0,trainFeaturesAll.shape[1]):
+#
+#    print("iteration: " + str(i))
+#
+#    trainFeatures = trainFeaturesAll
+#    testFeatures = testFeaturesAll
+#
+#    trainFeatures = np.delete(trainFeatures, i, axis=1)
+#    testFeatures = np.delete(testFeatures, i, axis=1)
+#
+#    # KNN ---------------------------------------------------------------------------------------------------
+#    print("\nKNN:")
+#    hyperparameters_KNN = {'algorithm': 'auto', 'leaf_size': 1, 'n_neighbors': 10, 'p': 2}
+#    estimator_KNN = estimator_KNN.set_params( **hyperparameters_KNN)
+#    cross_score_KNN = cross_val_score(estimator_KNN, trainFeatures, trainLabels, cv=cv, n_jobs = -1, scoring = scoring)
+#    print("ROC_AUC: %0.2f (+/- %0.2f)" % (cross_score_KNN.mean(), cross_score_KNN.std() * 2))
+#
+#    # Individual Models ---------------------------------------------------------------------------------------------------
+#    # Train the estimators using optimal hyperparameter values
+#    estimators = [estimator_KNN]
+#    estimators = train(estimators, trainFeatures, trainLabels)
+#
+#    # Check the score of each individual model on the training and test set
+#    print("\n\nIndividual models:")
+#    print("\nScore on training set:")
+#    trainReport, trainAccuracy, trainROC_AUC = score(estimators, trainFeatures, trainLabels)
+#
+#    print("\nScore on test set:")
+#    testReport, testAccuracy, testROC_AUC = score(estimators, testFeatures, testLabels)
+#
+#    # Save the results of the models
+#    saveResults(trainReport, trainAccuracy, trainROC_AUC,
+#                testReport, testAccuracy, testROC_AUC,
+#                estimators, fileNameResults)
+#
+## leave one out
+#for i in range(0,trainFeaturesAll.shape[1]):
+#
+#    print("iteration: " + str(i))
+#
+#    trainFeatures = trainFeaturesAll
+#    testFeatures = testFeaturesAll
+#
+#    trainFeatures = np.delete(trainFeatures, i, axis=1)
+#    testFeatures = np.delete(testFeatures, i, axis=1)
+#
+#    # logisticRegression -------------------------------------------------------------------------------------
+#    print("\nlogisticRegression:")
+#    hyperparameters_logisticRegression = {'C': 10.0, 'dual': False, 'fit_intercept': True, 'max_iter': 100000000, 'penalty': 'l2', 'solver': 'newton-cg'}
+#    estimator_logisticRegression = estimator_logisticRegression.set_params( **hyperparameters_logisticRegression)
+#    cross_score_logisticRegression = cross_val_score(estimator_logisticRegression, trainFeatures, trainLabels, cv=cv, n_jobs = -1, scoring = scoring)
+#    print("ROC_AUC: %0.2f (+/- %0.2f)" % (cross_score_logisticRegression.mean(), cross_score_logisticRegression.std() * 2))
+#
+#    # Individual Models ---------------------------------------------------------------------------------------------------
+#    # Train the estimators using optimal hyperparameter values
+#    estimators = [estimator_logisticRegression]
+#    estimators = train(estimators, trainFeatures, trainLabels)
+#
+#    # Check the score of each individual model on the training and test set
+#    print("\n\nIndividual models:")
+#    print("\nScore on training set:")
+#    trainReport, trainAccuracy, trainROC_AUC = score(estimators, trainFeatures, trainLabels)
+#
+#    print("\nScore on test set:")
+#    testReport, testAccuracy, testROC_AUC = score(estimators, testFeatures, testLabels)
+#
+#    # Save the results of the models
+#    saveResults(trainReport, trainAccuracy, trainROC_AUC,
+#                testReport, testAccuracy, testROC_AUC,
+#                estimators, fileNameResults)
+#
+## leave one out
+#for i in range(0,trainFeaturesAll.shape[1]):
+#
+#    print("iteration: " + str(i))
+#
+#    trainFeatures = trainFeaturesAll
+#    testFeatures = testFeaturesAll
+#
+#    trainFeatures = np.delete(trainFeatures, i, axis=1)
+#    testFeatures = np.delete(testFeatures, i, axis=1)
+#
+#    # MLP ---------------------------------------------------------------------------------------------------
+#    print("\nMLP:")
+#    hyperparameters_MLP = {'activation': 'relu', 'alpha':  1e-7, 'beta_1': 0.9, 'hidden_layer_sizes': 10, 'learning_rate': 'constant', 'learning_rate_init': 0.01, 'max_iter': 3000, 'momentum': 0.9, 'power_t': 0.5, 'random_state': 6, 'solver': 'sgd'}
+#    estimator_MLP = estimator_MLP.set_params( **hyperparameters_MLP)
+#    cross_score_MLP = cross_val_score(estimator_MLP, trainFeatures, trainLabels, cv=cv, n_jobs = -1, scoring = scoring)
+#    print("ROC_AUC: %0.2f (+/- %0.2f)" % (cross_score_MLP.mean(), cross_score_MLP.std() * 2))
+#
+#    # Individual Models ---------------------------------------------------------------------------------------------------
+#    # Train the estimators using optimal hyperparameter values
+#    estimators = [estimator_MLP]
+#    estimators = train(estimators, trainFeatures, trainLabels)
+#
+#    # Check the score of each individual model on the training and test set
+#    print("\n\nIndividual models:")
+#    print("\nScore on training set:")
+#    trainReport, trainAccuracy, trainROC_AUC = score(estimators, trainFeatures, trainLabels)
+#
+#    print("\nScore on test set:")
+#    testReport, testAccuracy, testROC_AUC = score(estimators, testFeatures, testLabels)
+#
+#    # Save the results of the models
+#    saveResults(trainReport, trainAccuracy, trainROC_AUC,
+#                testReport, testAccuracy, testROC_AUC,
+#                estimators, fileNameResults)
+#
+## leave one out
+#for i in range(0,trainFeaturesAll.shape[1]):
+#
+#    print("iteration: " + str(i))
+#
+#    trainFeatures = trainFeaturesAll
+#    testFeatures = testFeaturesAll
+#
+#    trainFeatures = np.delete(trainFeatures, i, axis=1)
+#    testFeatures = np.delete(testFeatures, i, axis=1)
+#
+#    # randomForest --------------------------------------------------------------------------------------------
+#    print("\nrandomForest:")
+#    hyperparameters_randomForest = {'criterion': 'entropy', 'max_depth': 4, 'max_features': 'sqrt', 'max_leaf_nodes': 16, 'min_samples_leaf': 1, 'min_samples_split': 2, 'n_estimators': 2000}
+#    estimator_randomForest = estimator_randomForest.set_params( **hyperparameters_randomForest)
+#    cross_score_randomForest = cross_val_score(estimator_randomForest, trainFeatures, trainLabels, cv=cv, n_jobs = -1, scoring = scoring)
+#    print("ROC_AUC: %0.2f (+/- %0.2f)" % (cross_score_randomForest.mean(), cross_score_randomForest.std() * 2))
+#
+#    # Individual Models ---------------------------------------------------------------------------------------------------
+#    # Train the estimators using optimal hyperparameter values
+#    estimators = [estimator_randomForest]
+#    estimators = train(estimators, trainFeatures, trainLabels)
+#
+#    # Check the score of each individual model on the training and test set
+#    print("\n\nIndividual models:")
+#    print("\nScore on training set:")
+#    trainReport, trainAccuracy, trainROC_AUC = score(estimators, trainFeatures, trainLabels)
+#
+#    print("\nScore on test set:")
+#    testReport, testAccuracy, testROC_AUC = score(estimators, testFeatures, testLabels)
+#
+#    # Save the results of the models
+#    saveResults(trainReport, trainAccuracy, trainROC_AUC,
+#                testReport, testAccuracy, testROC_AUC,
+#                estimators, fileNameResults)
+#
+## leave one out
+#for i in range(0,trainFeaturesAll.shape[1]):
+#
+#    print("iteration: " + str(i))
+#
+#    trainFeatures = trainFeaturesAll
+#    testFeatures = testFeaturesAll
+#
+#    trainFeatures = np.delete(trainFeatures, i, axis=1)
+#    testFeatures = np.delete(testFeatures, i, axis=1)
+#
+#    # SVM ---------------------------------------------------------------------------------------------------
+#    print("\nSVM:")
+#    hyperparameters_SVM = {'C': 0.1, 'coef0': 7.0, 'degree': 3, 'gamma': 'scale', 'kernel': 'poly', 'shrinking': True}
+#    estimator_SVM = estimator_SVM.set_params( **hyperparameters_SVM)
+#    cross_score_SVM = cross_val_score(estimator_SVM, trainFeatures, trainLabels, cv=cv, n_jobs = -1, scoring = scoring)
+#    print("ROC_AUC: %0.2f (+/- %0.2f)" % (cross_score_SVM.mean(), cross_score_SVM.std() * 2))
+#
+#    # Individual Models ---------------------------------------------------------------------------------------------------
+#    # Train the estimators using optimal hyperparameter values
+#    estimators = [estimator_SVM]
+#    estimators = train(estimators, trainFeatures, trainLabels)
+#
+#    # Check the score of each individual model on the training and test set
+#    print("\n\nIndividual models:")
+#    print("\nScore on training set:")
+#    trainReport, trainAccuracy, trainROC_AUC = score(estimators, trainFeatures, trainLabels)
+#
+#    print("\nScore on test set:")
+#    testReport, testAccuracy, testROC_AUC = score(estimators, testFeatures, testLabels)
+#
+#    # Save the results of the models
+#    saveResults(trainReport, trainAccuracy, trainROC_AUC,
+#                testReport, testAccuracy, testROC_AUC,
+#                estimators, fileNameResults)
+
+
+#________________________________________________________________old
+
 
 # KNN ---------------------------------------------------------------------------------------------------
 print("\nKNN:")
@@ -249,43 +438,48 @@ trainReport, trainAccuracy, trainROC_AUC = score(estimators, trainFeatures, trai
 print("\nScore on test set:")
 testReport, testAccuracy, testROC_AUC = score(estimators, testFeatures, testLabels)
 
-# EnsembledVoting ---------------------------------------------------------------------------------------------------
-# Check the score of the ensembled models using voting on the training and test set
-print("\n\nEnsembled Voting:")
-print("\nScore on training set:")
-trainReportEnsembled, trainAccuracyEnsembled, trainROC_AUCEnsembled = scoreEnsembledVoting(estimators, trainFeatures, trainLabels)
-
-print("\nScore on test set:")
-testReportEnsembled, testAccuracyEnsembled, testROC_AUCEnsembled = scoreEnsembledVoting(estimators, testFeatures, testLabels)
-
-# Add the results of the ensembled models to the individual results
-trainReport.append(trainReportEnsembled)
-trainAccuracy.append(trainAccuracyEnsembled)
-trainROC_AUC.append(trainROC_AUCEnsembled)
-testReport.append(testReportEnsembled)
-testAccuracy.append(testAccuracyEnsembled)
-testROC_AUC.append(testROC_AUCEnsembled)
-
-# EnsembledAveraging ---------------------------------------------------------------------------------------------------
-# Check the score of the ensembled models using voting on the training and test set
-print("\n\nEnsembled Averaging:")
-print("\nScore on training set:")
-trainReportEnsembled, trainAccuracyEnsembled, trainROC_AUCEnsembled = scoreEnsembledAveraging(estimators, trainFeatures, trainLabels)
-
-print("\nScore on test set:")
-testReportEnsembled, testAccuracyEnsembled, testROC_AUCEnsembled = scoreEnsembledAveraging(estimators, testFeatures, testLabels)
-
-# Add the results of the ensembled models to the individual results
-trainReport.append(trainReportEnsembled)
-trainAccuracy.append(trainAccuracyEnsembled)
-trainROC_AUC.append(trainROC_AUCEnsembled)
-testReport.append(testReportEnsembled)
-testAccuracy.append(testAccuracyEnsembled)
-testROC_AUC.append(testROC_AUCEnsembled)
-estimators.append("ensembledVoting")
-estimators.append("ensembledAveraging")
-
-# Save the results of the ensembled models
+# Save the results of the models
 saveResults(trainReport, trainAccuracy, trainROC_AUC,
             testReport, testAccuracy, testROC_AUC,
             estimators, fileNameResults)
+
+# EnsembledVoting ---------------------------------------------------------------------------------------------------
+# Check the score of the ensembled models using voting on the training and test set
+#print("\n\nEnsembled Voting:")
+#print("\nScore on training set:")
+#trainReportEnsembled, trainAccuracyEnsembled, trainROC_AUCEnsembled = scoreEnsembledVoting(estimators, trainFeatures, trainLabels)
+
+#print("\nScore on test set:")
+#testReportEnsembled, testAccuracyEnsembled, testROC_AUCEnsembled = scoreEnsembledVoting(estimators, testFeatures, testLabels)
+
+# Add the results of the ensembled models to the individual results
+#trainReport.append(trainReportEnsembled)
+#trainAccuracy.append(trainAccuracyEnsembled)
+#trainROC_AUC.append(trainROC_AUCEnsembled)
+#testReport.append(testReportEnsembled)
+#testAccuracy.append(testAccuracyEnsembled)
+#testROC_AUC.append(testROC_AUCEnsembled)
+
+# EnsembledAveraging ---------------------------------------------------------------------------------------------------
+# Check the score of the ensembled models using voting on the training and test set
+#print("\n\nEnsembled Averaging:")
+#print("\nScore on training set:")
+#trainReportEnsembled, trainAccuracyEnsembled, trainROC_AUCEnsembled = scoreEnsembledAveraging(estimators, trainFeatures, trainLabels)
+
+#print("\nScore on test set:")
+#testReportEnsembled, testAccuracyEnsembled, testROC_AUCEnsembled = scoreEnsembledAveraging(estimators, testFeatures, testLabels)
+
+# Add the results of the ensembled models to the individual results
+#trainReport.append(trainReportEnsembled)
+#trainAccuracy.append(trainAccuracyEnsembled)
+#trainROC_AUC.append(trainROC_AUCEnsembled)
+#testReport.append(testReportEnsembled)
+#testAccuracy.append(testAccuracyEnsembled)
+#testROC_AUC.append(testROC_AUCEnsembled)
+#estimators.append("ensembledVoting")
+#estimators.append("ensembledAveraging")
+
+# Save the results of the ensembled models
+#saveResults(trainReport, trainAccuracy, trainROC_AUC,
+#            testReport, testAccuracy, testROC_AUC,
+#            estimators, fileNameResults)

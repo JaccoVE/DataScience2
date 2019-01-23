@@ -1,0 +1,32 @@
+Classifier,Random Search Distribution,Best Random Hyperparameters,Grid Search Distribution ,Best Grid Search Hyperparameters,ROC AUC,95% Confidence Interval,ROC AUC Test Set
+KNN,N/A,N/A,n_neighbors: 1 – 20,n_neighbors : 10,0.87,+/- 0.08,0.705
+,,,"weights : ['uniform', 'distance']",weights : 'uniform',,,
+,,,"algorithm : ['auto', 'ball_tree', 'kd_tree', 'brute']",algorithm : 'auto',,,
+,,,leaf_size : 1 – 10,leaf_size : 1,,,
+,,,"p : [1, 2]",p : 2,,,
+Logistic Regression,N/A,N/A,penalty : ['l2'],penalty : 'l2',0.9,+/- 0.1,0.788
+,,,dual : [False],dual : False,,,
+,,,"C : [1.0, 10.0, 100.0]",C : 10.0,,,
+,,,"fit_intercept : [True, False]",fit_intercept : True,,,
+,,,"solver : ['newton-cg', 'lbfgs', 'sag']",solver : 'newton-cg',,,
+,,,"max_iter : [1000000, 10000000, 100000000]",max_iter : 100000000,,,
+MLP,hidden_layer_sizes : 10 – 200 with steps of 10,hidden_layer_size : 10,hidden_layer_sizes : 5 – 15,hidden_layer_sizes : 10,0.91,+/- 0.07,0.818
+,"activation : ['identity', 'logistic', 'tanh', 'relu']",activation : 'relu',activation : ['relu'],activation : 'relu',,,
+,"solver : ['lbfgs', 'sgd', 'adam']",solver : 'lbfgs',solver : ['lbfgs'],solver : 'lbfgs',,,
+,"learning_rate : ['constant', 'invscaling', 'adaptive']",learning_rate : 'constant',learning_rate : ['constant'],learning_rate : 'constant',,,
+,"learning_rate_init: [0.01, 0.001, 0.0001]",learning_rate_init: 0.01,"learning_rate_init: [0.1, 0.01, 0.001]",learning_rate_init: 0.01,,,
+,max_iter : [500],max_iter : 500,max_iter : 500 – 5000 with steps of 200,max_iter : 3000,,,
+,,,random_state : 4 – 8,random_state : 6,,,
+,,,alpha : 1e-4 – 1e-8,alpha : 1e-7,,,
+Random Forest,"n_estimators: [1000, 1500, 2000]",n_estimators: 2000,n_estimators: [2000],n_estimators: 2000,0.89,+/- 0.08,0.718
+,"criterion : ['gini', 'entropy']",criterion : 'entropy',criterion : ['entropy'],criterion : 'entropy',,,
+,"max_depth: [1, 2, 4, 8, 12, 16, 24, 30, None]",max_depth: 4,"max_depth: [1, 2, 3, 4, 5, 6, 7, 8, 10, 12, 16, 24, 30, None]",max_depth: 4,,,
+,"min_samples_split : [2, 4, 6, 8, 12, 16, 24, 30]","min_samples_split :2, 4, 6, 8, 12, 16, 24, 30]",min_samples_split : [2],min_samples_split : 2,,,
+,"min_samples_leaf : [1, 2, 4, 6, 8, 12, 16, 24, 30]",min_samples_leaf : 1,min_samples_leaf : [1],min_samples_leaf : 1,,,
+,"max_features : ['sqrt', 'log2', None]",max_features : 'sqrt',max_features : ['sqrt'],max_features : 'sqrt',,,
+,"max_leaf_nodes : [2, 4, 6, 8, 12, 16, 24, 30, None]",max_leaf_nodes : 16,"max_leaf_nodes : [12, 14, 16, 18, 20, 22, 24, None]",max_leaf_nodes : 16,,,
+SVM,"C: [0.001, 0.01, 0.1, 1.0, 10.0, 100.0, 1000.0]",C: 0.1,"C : [0.001, 0.05, 0.1, 0.15, 1.0]",C : 0.1,0.9,+/- 0.13,0.77
+,"kernel : ['linear', 'poly', 'rbf', 'sigmoid']",kernel : 'poly',kernel : ['poly'],kernel : 'poly',,,
+,"Degree : [3, 4, 5, 6, 7]d",degree : 3,"degree : [3, 4, 5]",degree : 3,,,
+,"gamma : ['auto', 'scale']",gamma : 'scale',gamma : ['scale'],gamma : 'scale',,,
+,coef0 : -10 – 10,coef0 : 7,"coef0 : [6.8, 6.9, 7.0, 7.1, 7.2]",coef0 : 7,,,

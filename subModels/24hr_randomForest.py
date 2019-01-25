@@ -190,13 +190,13 @@ estimator = RandomForestClassifier()
 #                    'max_features': ["sqrt"],
 #                    'max_leaf_nodes': [7, 8, 9, 10, 11, 12, 13]}
 
-hyperparameters = { 'n_estimators': np.arange(45, 65, 1),
+hyperparameters = { 'n_estimators': [2000],
                     'criterion' : ["entropy"],
-                    'max_depth': np.arange(10, 25, 1),
-                    'min_samples_split' : np.arange(2, 10, 1),
-                    'min_samples_leaf' : [2],
+                    'max_depth': np.arange(4, 15, 1),
+                    'min_samples_split' : np.arange(2, 8, 1),
+                    'min_samples_leaf' : np.arange(1, 4, 1),
                     'max_features': ["sqrt"],
-                    'max_leaf_nodes': np.arange(8, 14, 1)}
+                    'max_leaf_nodes': np.arange(6, 20, 1)}
 
 print("\nPossible hyperparameter combinations:")
 print(str(numberOfCombinations(hyperparameters)))

@@ -280,22 +280,20 @@ cv = 5
 scoring = "roc_auc"
 
 # Select the best features for each individual model
-trainFeatures_KNN = trainFeatures#[:,[3,5,16,18,20,21,22,24,33,42, 0,1,2,7,8,12,13,14,15,17,23,25,26,29,30,34,35,36]]
-testFeatures_KNN = testFeatures#[:,[3,5,16,18,20,21,22,24,33,42, 0,1,2,7,8,12,13,14,15,17,23,25,26,29,30,34,35,36]]
+trainFeatures_KNN = trainFeatures
+testFeatures_KNN = testFeatures
 
-trainFeatures_logisticRegression = trainFeatures#[:,[6,8,12,18,24,30,32,34,37,39,41,43]]
-testFeatures_logisticRegression = testFeatures#[:,[6,8,12,18,24,30,32,34,37,39,41,43]]
-#trainFeatures_logisticRegression = np.delete(trainFeatures_logisticRegression, 42, axis=1)
-#testFeatures_logisticRegression = np.delete(testFeatures_logisticRegression, 42, axis=1)
+trainFeatures_logisticRegression = trainFeatures
+testFeatures_logisticRegression = testFeatures
 
-trainFeatures_MLP = trainFeatures#[:,[6,10,15,33,34,35,37,38,39, 13,17,40,43]]
-testFeatures_MLP = testFeatures#[:,[6,10,15,33,34,35,37,38,39, 13,17,40,43]]
+trainFeatures_MLP = trainFeatures
+testFeatures_MLP = testFeatures
 
 trainFeatures_randomForest = trainFeatures
 testFeatures_randomForest = testFeatures
 
-trainFeatures_SVM = trainFeatures#[:,[0,1,3,5,6,7,11,12,18,19,20,22,24,28,34,36,37, 2,4,8,13,14,15,16,17,21,23,25,26,27,29,30,31,32,33,35,38,40]]
-testFeatures_SVM = testFeatures#[:,[0,1,3,5,6,7,11,12,18,19,20,22,24,28,34,36,37, 2,4,8,13,14,15,16,17,21,23,25,26,27,29,30,31,32,33,35,38,40]]
+trainFeatures_SVM = trainFeatures
+testFeatures_SVM = testFeatures
 
 # KNN ---------------------------------------------------------------------------------------------------
 print("\nKNN:")
@@ -306,21 +304,21 @@ print("ROC_AUC: %0.2f (+/- %0.2f)" % (cross_score_KNN.mean(), cross_score_KNN.st
 
 # logisticRegression -------------------------------------------------------------------------------------
 print("\nlogisticRegression:")
-hyperparameters_logisticRegression = {'C': 1.0, 'dual': False, 'fit_intercept': True, 'max_iter': 100000000, 'penalty': 'l2', 'solver': 'newton-cg'}
+hyperparameters_logisticRegression = {'C': 0.1, 'dual': False, 'fit_intercept': True, 'max_iter': 10000, 'penalty': 'l2', 'solver': 'newton-cg'}
 estimator_logisticRegression = estimator_logisticRegression.set_params( **hyperparameters_logisticRegression)
 cross_score_logisticRegression = cross_val_score(estimator_logisticRegression, trainFeatures_logisticRegression, trainLabels, cv=cv, n_jobs = -1, scoring = scoring)
 print("ROC_AUC: %0.2f (+/- %0.2f)" % (cross_score_logisticRegression.mean(), cross_score_logisticRegression.std() * 2))
 
 # MLP ---------------------------------------------------------------------------------------------------
 print("\nMLP:")
-hyperparameters_MLP = {'activation': 'relu', 'alpha': 1e-07, 'beta_1': 0.9, 'hidden_layer_sizes': 10, 'learning_rate': 'constant', 'learning_rate_init': 0.0001, 'max_iter': 10000, 'momentum': 0.97, 'power_t': 0.5, 'random_state': 5, 'solver': 'sgd', 'tol': 1e-05}
+hyperparameters_MLP = {'activation': 'relu', 'alpha': 0.0001, 'hidden_layer_sizes': 10, 'learning_rate': 'constant', 'learning_rate_init': 0.001, 'max_iter': 3000, 'solver': 'lbfgs'}
 estimator_MLP = estimator_MLP.set_params( **hyperparameters_MLP)
 cross_score_MLP = cross_val_score(estimator_MLP, trainFeatures_MLP, trainLabels, cv=cv, n_jobs = -1, scoring = scoring)
 print("ROC_AUC: %0.2f (+/- %0.2f)" % (cross_score_MLP.mean(), cross_score_MLP.std() * 2))
 
 # randomForest --------------------------------------------------------------------------------------------
 print("\nrandomForest:")
-hyperparameters_randomForest = {'criterion': 'entropy', 'max_depth': 15, 'max_features': 'sqrt', 'max_leaf_nodes': 11, 'min_samples_leaf': 2, 'min_samples_split': 2, 'n_estimators': 50}
+hyperparameters_randomForest = {'criterion': 'entropy', 'max_depth': 7, 'max_features': 'sqrt', 'max_leaf_nodes': 10, 'min_samples_leaf': 3, 'min_samples_split': 6, 'n_estimators': 2000}
 estimator_randomForest = estimator_randomForest.set_params( **hyperparameters_randomForest)
 cross_score_randomForest = cross_val_score(estimator_randomForest, trainFeatures_randomForest, trainLabels, cv=cv, n_jobs = -1, scoring = scoring)
 print("ROC_AUC: %0.2f (+/- %0.2f)" % (cross_score_randomForest.mean(), cross_score_randomForest.std() * 2))

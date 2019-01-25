@@ -219,13 +219,8 @@ hyperparameters = { 'hidden_layer_sizes': [10],
                     'solver' : ['lbfgs'],
                     'alpha' : 10.0 ** -np.arange(4, 8),
                     'learning_rate' : ['constant'],
-                    'learning_rate_init': [0.1, 0.01, 0.001, 0.0001],
-                    'power_t' : [0.5],
-                    'max_iter' : np.arange(500, 5000, 200),
-                    'random_state' : np.arange(4, 8, 1),
-                    'tol' : [10.0 ** -4, 10.0 ** -5, 10.0 ** -6],
-                    'momentum' : [0.9],
-                    'beta_1' : [0.9]}
+                    'learning_rate_init': [0.1, 0.01, 0.001],
+                    'max_iter' : np.arange(500, 5000, 200)}
 
 # Algorithm Settings
 n_iter = numberOfCombinations(hyperparameters) #1000

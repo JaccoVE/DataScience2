@@ -215,22 +215,13 @@ def plotROC(testFPR, testTPR, testAUC, estimatorName):
     plt.show()
 
 # Function to write results to excel
-def saveResults(trainReport, trainAccuracy, trainPrecision, trainRecall, trainAUC,
-                testReport, testAccuracy, testPrecision, testRecall, testAUC,
-                estimators, fileNameResults):
+def saveResults(auc_mean, auc_std, number, estimators, fileNameResults):
 
     for i in range(0, len(estimators)):
         columns = [str(estimators[i]),
-                trainAUC[i],
-                testAUC[i],
-                trainAccuracy[i],
-                testAccuracy[i],
-                trainPrecision[i],
-                testPrecision[i],
-                trainRecall[i],
-                testRecall[i],
-                str(trainReport[i]),
-                str(testReport[i])]
+                auc_mean[i],
+                auc_std[i],
+                number[i]]
 
         book = openpyxl.load_workbook(fileNameResults)
         sheet = book.active
@@ -244,11 +235,11 @@ def saveResults(trainReport, trainAccuracy, trainPrecision, trainRecall, trainAU
 # ------------------------------------------------------------------------------
 
 # Save locations
-fileNameResults = "../results/24hr_ensembled2.xlsx"
+fileNameResults = "../results/12hr_ensembledLOO.xlsx"
 
 # Load the train and test data
-trainData = np.loadtxt("../data/24hr_train_data.txt")
-testData = np.loadtxt("../data/24hr_test_data.txt")
+trainData = np.loadtxt("../data/12hr_train_data.txt")
+testData = np.loadtxt("../data/12hr_test_data.txt")
 
 # Split the features and labels
 trainFeatures = trainData[:,1:45]
@@ -279,119 +270,191 @@ estimator_SVM = SVC(probability = True)
 cv = 5
 scoring = "roc_auc"
 
-# Select the best features for each individual model
-trainFeatures_KNN = trainFeatures[:,[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,26,27,29,30,31,33,34,35,36,37,38,39,40,41,42,43]]
-testFeatures_KNN = testFeatures[:,[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,26,27,29,30,31,33,34,35,36,37,38,39,40,41,42,43]]
-
-trainFeatures_logisticRegression = trainFeatures[:,[0,6,7,8,10,11,12,13,15,21,22,25,28,29,40,42, 1,2,4,14,16,17,18,20,23,26,31,33,34,35,39]]
-testFeatures_logisticRegression = testFeatures[:,[0,6,7,8,10,11,12,13,15,21,22,25,28,29,40,42, 1,2,4,14,16,17,18,20,23,26,31,33,34,35,39]]
-
-trainFeatures_MLP = trainFeatures[:,[8,9,20,23,26,27,34,36, 6,42]]
-testFeatures_MLP = testFeatures[:,[8,9,20,23,26,27,34,36, 6,42]]
-
-trainFeatures_randomForest = trainFeatures
-testFeatures_randomForest = testFeatures
-
-trainFeatures_SVM = trainFeatures[:,[0,1,2,3,4,5,6,7,8,9,10,11,12,14,17,18,19,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43]]
-testFeatures_SVM = testFeatures[:,[0,1,2,3,4,5,6,7,8,9,10,11,12,14,17,18,19,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43]]
-
 # KNN ---------------------------------------------------------------------------------------------------
+trainFeatures_KNN = trainFeatures
+testFeatures_KNN = testFeatures
+
 print("\nKNN:")
-hyperparameters_KNN = {'algorithm': 'auto', 'leaf_size': 1, 'n_neighbors': 15, 'p': 1, 'weights': 'distance'}
+hyperparameters_KNN = {'algorithm': 'auto', 'leaf_size': 1, 'n_neighbors': 10, 'p': 2}
 estimator_KNN = estimator_KNN.set_params( **hyperparameters_KNN)
 cross_score_KNN = cross_val_score(estimator_KNN, trainFeatures_KNN, trainLabels, cv=cv, n_jobs = -1, scoring = scoring)
 print("ROC_AUC: %0.2f (+/- %0.2f)" % (cross_score_KNN.mean(), cross_score_KNN.std() * 2))
 
+estimators = [  estimator_KNN]
+estimatorNames = [  'KNN']
+
+# Save the results of the ensembled models
+saveResults([round(cross_score_KNN.mean(), 3)], [round(cross_score_KNN.std(), 3)],
+            [0], estimators, fileNameResults)
+
+for i in range(0,trainFeatures.shape[1]):
+
+    trainFeatures_KNN = trainFeatures
+    testFeatures_KNN = testFeatures
+
+    trainFeatures_KNN = np.delete(trainFeatures_KNN, i, axis=1)
+    testFeatures_KNN = np.delete(testFeatures_KNN, i, axis=1)
+
+    print("\nKNN:")
+    hyperparameters_KNN = {'algorithm': 'auto', 'leaf_size': 1, 'n_neighbors': 10, 'p': 2}
+    cross_score_KNN = cross_val_score(estimator_KNN, trainFeatures_KNN, trainLabels, cv=cv, n_jobs = -1, scoring = scoring)
+    print("ROC_AUC: %0.2f (+/- %0.2f)" % (cross_score_KNN.mean(), cross_score_KNN.std() * 2))
+
+    estimators = [  estimator_KNN]
+    estimatorNames = [  'KNN']
+
+    # Save the results of the ensembled models
+    saveResults([round(cross_score_KNN.mean(), 3)], [round(cross_score_KNN.std(), 3)],
+                [i], estimators, fileNameResults)
+
 # logisticRegression -------------------------------------------------------------------------------------
+trainFeatures_logisticRegression = trainFeatures
+testFeatures_logisticRegression = testFeatures
+
 print("\nlogisticRegression:")
-hyperparameters_logisticRegression = {'C': 0.1, 'dual': False, 'fit_intercept': True, 'max_iter': 10000, 'penalty': 'l2', 'solver': 'newton-cg'}
+hyperparameters_logisticRegression = {'C': 10.0, 'dual': False, 'fit_intercept': True, 'max_iter': 100000000, 'penalty': 'l2', 'solver': 'newton-cg'}
 estimator_logisticRegression = estimator_logisticRegression.set_params( **hyperparameters_logisticRegression)
 cross_score_logisticRegression = cross_val_score(estimator_logisticRegression, trainFeatures_logisticRegression, trainLabels, cv=cv, n_jobs = -1, scoring = scoring)
 print("ROC_AUC: %0.2f (+/- %0.2f)" % (cross_score_logisticRegression.mean(), cross_score_logisticRegression.std() * 2))
 
+estimators = [  estimator_logisticRegression]
+estimatorNames = [  'Logistic Regression']
+
+# Save the results of the ensembled models
+saveResults([round(cross_score_logisticRegression.mean(), 3)], [round(cross_score_logisticRegression.std(), 3)],
+            [0], estimators, fileNameResults)
+
+for i in range(0,trainFeatures.shape[1]):
+
+    trainFeatures_logisticRegression = trainFeatures
+    testFeatures_logisticRegression = testFeatures
+
+    trainFeatures_logisticRegression = np.delete(trainFeatures_logisticRegression, i, axis=1)
+    testFeatures_logisticRegression = np.delete(testFeatures_logisticRegression, i, axis=1)
+
+    print("\nlogisticRegression:")
+    hyperparameters_logisticRegression = {'C': 10.0, 'dual': False, 'fit_intercept': True, 'max_iter': 100000000, 'penalty': 'l2', 'solver': 'newton-cg'}
+    estimator_logisticRegression = estimator_logisticRegression.set_params( **hyperparameters_logisticRegression)
+    cross_score_logisticRegression = cross_val_score(estimator_logisticRegression, trainFeatures_logisticRegression, trainLabels, cv=cv, n_jobs = -1, scoring = scoring)
+    print("ROC_AUC: %0.2f (+/- %0.2f)" % (cross_score_logisticRegression.mean(), cross_score_logisticRegression.std() * 2))
+
+    estimators = [  estimator_logisticRegression]
+    estimatorNames = [  'Logistic Regression']
+
+    # Save the results of the ensembled models
+    saveResults([round(cross_score_logisticRegression.mean(), 3)], [round(cross_score_logisticRegression.std(), 3)],
+                [i], estimators, fileNameResults)
+
 # MLP ---------------------------------------------------------------------------------------------------
+trainFeatures_MLP = trainFeatures
+testFeatures_MLP = testFeatures
+
 print("\nMLP:")
-hyperparameters_MLP = {'activation': 'relu', 'alpha': 0.0001, 'hidden_layer_sizes': 10, 'learning_rate': 'constant', 'learning_rate_init': 0.001, 'max_iter': 3000, 'solver': 'lbfgs'}
+hyperparameters_MLP = {'activation': 'relu', 'alpha':  1e-7, 'beta_1': 0.9, 'hidden_layer_sizes': 10, 'learning_rate': 'constant', 'learning_rate_init': 0.01, 'max_iter': 3000, 'momentum': 0.9, 'power_t': 0.5, 'random_state': 6, 'solver': 'sgd'}
 estimator_MLP = estimator_MLP.set_params( **hyperparameters_MLP)
 cross_score_MLP = cross_val_score(estimator_MLP, trainFeatures_MLP, trainLabels, cv=cv, n_jobs = -1, scoring = scoring)
 print("ROC_AUC: %0.2f (+/- %0.2f)" % (cross_score_MLP.mean(), cross_score_MLP.std() * 2))
 
+estimators = [  estimator_MLP]
+estimatorNames = [  'MLP']
+
+# Save the results of the ensembled models
+saveResults([round(cross_score_MLP.mean(), 3)], [round(cross_score_MLP.std(), 3)],
+            [0], estimators, fileNameResults)
+
+for i in range(0,trainFeatures.shape[1]):
+
+    trainFeatures_MLP = trainFeatures
+    testFeatures_MLP = testFeatures
+
+    trainFeatures_MLP = np.delete(trainFeatures_MLP, i, axis=1)
+    testFeatures_MLP = np.delete(testFeatures_MLP, i, axis=1)
+
+    print("\nMLP:")
+    hyperparameters_MLP = {'activation': 'relu', 'alpha':  1e-7, 'beta_1': 0.9, 'hidden_layer_sizes': 10, 'learning_rate': 'constant', 'learning_rate_init': 0.01, 'max_iter': 3000, 'momentum': 0.9, 'power_t': 0.5, 'random_state': 6, 'solver': 'sgd'}
+    estimator_MLP = estimator_MLP.set_params( **hyperparameters_MLP)
+    cross_score_MLP = cross_val_score(estimator_MLP, trainFeatures_MLP, trainLabels, cv=cv, n_jobs = -1, scoring = scoring)
+    print("ROC_AUC: %0.2f (+/- %0.2f)" % (cross_score_MLP.mean(), cross_score_MLP.std() * 2))
+
+    estimators = [  estimator_MLP]
+    estimatorNames = [  'MLP']
+
+    # Save the results of the ensembled models
+    saveResults([round(cross_score_MLP.mean(), 3)], [round(cross_score_MLP.std(), 3)],
+                [i], estimators, fileNameResults)
+
 # randomForest --------------------------------------------------------------------------------------------
+trainFeatures_randomForest = trainFeatures
+testFeatures_randomForest = testFeatures
+
 print("\nrandomForest:")
-hyperparameters_randomForest = {'criterion': 'entropy', 'max_depth': 7, 'max_features': 'sqrt', 'max_leaf_nodes': 10, 'min_samples_leaf': 3, 'min_samples_split': 6, 'n_estimators': 2000}
-estimator_randomForest = estimator_randomForest.set_params( **hyperparameters_randomForest)
+hyperparameters_randomForest = {'criterion': 'entropy', 'max_depth': 4, 'max_features': 'sqrt', 'max_leaf_nodes': 16, 'min_samples_leaf': 1, 'min_samples_split': 2, 'n_estimators': 2000}
 cross_score_randomForest = cross_val_score(estimator_randomForest, trainFeatures_randomForest, trainLabels, cv=cv, n_jobs = -1, scoring = scoring)
 print("ROC_AUC: %0.2f (+/- %0.2f)" % (cross_score_randomForest.mean(), cross_score_randomForest.std() * 2))
 
+estimators = [  estimator_randomForest]
+estimatorNames = [  'Random Forest']
+
+# Save the results of the ensembled models
+saveResults([round(cross_score_randomForest.mean(), 3)], [round(cross_score_randomForest.std(), 3)],
+            [0], estimators, fileNameResults)
+
+for i in range(0,trainFeatures.shape[1]):
+
+    trainFeatures_randomForest = trainFeatures
+    testFeatures_randomForest = testFeatures
+
+    trainFeatures_randomForest = np.delete(trainFeatures_randomForest, i, axis=1)
+    testFeatures_randomForest = np.delete(testFeatures_randomForest, i, axis=1)
+
+    print("\nrandomForest:")
+    hyperparameters_randomForest = {'criterion': 'entropy', 'max_depth': 4, 'max_features': 'sqrt', 'max_leaf_nodes': 16, 'min_samples_leaf': 1, 'min_samples_split': 2, 'n_estimators': 2000}
+    estimator_randomForest = estimator_randomForest.set_params( **hyperparameters_randomForest)
+    cross_score_randomForest = cross_val_score(estimator_randomForest, trainFeatures_randomForest, trainLabels, cv=cv, n_jobs = -1, scoring = scoring)
+    print("ROC_AUC: %0.2f (+/- %0.2f)" % (cross_score_randomForest.mean(), cross_score_randomForest.std() * 2))
+
+    estimators = [  estimator_randomForest]
+    estimatorNames = [  'Random Forest']
+
+    # Save the results of the ensembled models
+    saveResults([round(cross_score_randomForest.mean(), 3)], [round(cross_score_randomForest.std(), 3)],
+                [i], estimators, fileNameResults)
+
+
 # SVM ---------------------------------------------------------------------------------------------------
+trainFeatures_SVM = trainFeatures
+testFeatures_SVM = testFeatures
+
 print("\nSVM:")
-hyperparameters_SVM = {'C': 0.01, 'coef0': -15, 'degree': 3, 'gamma': 'scale', 'kernel': 'poly', 'shrinking': True}
+hyperparameters_SVM = {'C': 0.1, 'coef0': 7.0, 'degree': 3, 'gamma': 'scale', 'kernel': 'poly', 'shrinking': True}
 estimator_SVM = estimator_SVM.set_params( **hyperparameters_SVM)
 cross_score_SVM = cross_val_score(estimator_SVM, trainFeatures_SVM, trainLabels, cv=cv, n_jobs = -1, scoring = scoring)
 print("ROC_AUC: %0.2f (+/- %0.2f)" % (cross_score_SVM.mean(), cross_score_SVM.std() * 2))
 
-# Individual Models ---------------------------------------------------------------------------------------------------
-# Train the estimators using optimal hyperparameter values
-estimators = [  #estimator_KNN,
-                estimator_logisticRegression,
-                #estimator_MLP,
-                estimator_randomForest,
-                estimator_SVM]
-estimatorNames = [  #'KNN',
-                    'Logistic Regression',
-                    #'MLP',
-                    'Random Forest',
-                    'SVM']
-trainFeatures = [   #trainFeatures_KNN,
-                    trainFeatures_logisticRegression,
-                    #trainFeatures_MLP,
-                    trainFeatures_randomForest,
-                    trainFeatures_SVM]
-testFeatures = [#testFeatures_KNN,
-                testFeatures_logisticRegression,
-                #testFeatures_MLP,
-                testFeatures_randomForest,
-                testFeatures_SVM]
-
-estimators = train(estimators, trainFeatures, trainLabels)
-
-# Check the score of each individual model on the training and test set
-print("\n\nIndividual models:")
-print("\nScore on training set:")
-trainReport, trainAccuracy, trainPrecision, trainRecall, trainAUC = score(estimators, estimatorNames, trainFeatures, trainLabels)
-
-print("\nScore on test set:")
-testReport, testAccuracy, testPrecision, testRecall, testAUC = score(estimators, estimatorNames, testFeatures, testLabels)
+estimators = [  estimator_SVM]
+estimatorNames = [  'SVM']
 
 # Save the results of the ensembled models
-saveResults(trainReport, trainAccuracy, testPrecision, testRecall, trainAUC,
-            testReport, testAccuracy, testPrecision, testRecall, testAUC,
-            estimators, fileNameResults)
+saveResults([round(cross_score_SVM.mean(), 3)], [round(cross_score_SVM.std(), 3)],
+            [0], estimators, fileNameResults)
 
-# EnsembledVoting ---------------------------------------------------------------------------------------------------
-# Check the score of the ensembled models using voting on the training and test set
-print("\n\nEnsembled Voting:")
-print("\nScore on training set:")
-trainReportEnsembled, trainAccuracyEnsembled, trainPrecisionEnsembled, trainRecallEnsembled, trainAUCEnsembled = scoreEnsembledVoting(estimators, trainFeatures, trainLabels)
+for i in range(0,trainFeatures.shape[1]):
 
-print("\nScore on test set:")
-testReportEnsembled, testAccuracyEnsembled, testPrecisionEnsembled, testRecallEnsembled, testAUCEnsembled = scoreEnsembledVoting(estimators, testFeatures, testLabels)
+    trainFeatures_SVM = trainFeatures
+    testFeatures_SVM = testFeatures
 
-# Save the results of the ensembled models
-saveResults([trainReportEnsembled], [trainAccuracyEnsembled], [trainPrecisionEnsembled], [trainRecallEnsembled], [trainAUCEnsembled],
-            [testReportEnsembled], [testAccuracyEnsembled], [testPrecisionEnsembled], [testRecallEnsembled], [testAUCEnsembled],
-            ["ensembledVoting"], fileNameResults)
+    trainFeatures_SVM = np.delete(trainFeatures_SVM, i, axis=1)
+    testFeatures_SVM = np.delete(testFeatures_SVM, i, axis=1)
 
-# EnsembledAveraging ---------------------------------------------------------------------------------------------------
-# Check the score of the ensembled models using voting on the training and test set
-print("\n\nEnsembled Averaging:")
-print("\nScore on training set:")
-trainReportEnsembled, trainAccuracyEnsembled, trainPrecisionEnsembled, trainRecallEnsembled, trainAUCEnsembled = scoreEnsembledAveraging(estimators, trainFeatures, trainLabels)
+    print("\nSVM:")
+    hyperparameters_SVM = {'C': 0.1, 'coef0': 7.0, 'degree': 3, 'gamma': 'scale', 'kernel': 'poly', 'shrinking': True}
+    estimator_SVM = estimator_SVM.set_params( **hyperparameters_SVM)
+    cross_score_SVM = cross_val_score(estimator_SVM, trainFeatures_SVM, trainLabels, cv=cv, n_jobs = -1, scoring = scoring)
+    print("ROC_AUC: %0.2f (+/- %0.2f)" % (cross_score_SVM.mean(), cross_score_SVM.std() * 2))
 
-print("\nScore on test set:")
-testReportEnsembled, testAccuracyEnsembled, testPrecisionEnsembled, testRecallEnsembled, testAUCEnsembled = scoreEnsembledAveraging(estimators, testFeatures, testLabels)
+    estimators = [  estimator_SVM]
+    estimatorNames = [  'SVM']
 
-# Save the results of the ensembled models
-saveResults([trainReportEnsembled], [trainAccuracyEnsembled], [trainPrecisionEnsembled], [trainRecallEnsembled], [trainAUCEnsembled],
-            [testReportEnsembled], [testAccuracyEnsembled], [testPrecisionEnsembled], [testRecallEnsembled], [testAUCEnsembled],
-["ensembledAveraging"], fileNameResults)
+    # Save the results of the ensembled models
+    saveResults([round(cross_score_SVM.mean(), 3)], [round(cross_score_SVM.std(), 3)],
+                [i], estimators, fileNameResults)

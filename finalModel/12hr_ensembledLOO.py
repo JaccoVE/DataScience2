@@ -297,6 +297,7 @@ for i in range(0,trainFeatures.shape[1]):
 
     print("\nKNN:")
     hyperparameters_KNN = {'algorithm': 'auto', 'leaf_size': 1, 'n_neighbors': 10, 'p': 2}
+    estimator_KNN = estimator_KNN.set_params( **hyperparameters_KNN)
     cross_score_KNN = cross_val_score(estimator_KNN, trainFeatures_KNN, trainLabels, cv=cv, n_jobs = -1, scoring = scoring)
     print("ROC_AUC: %0.2f (+/- %0.2f)" % (cross_score_KNN.mean(), cross_score_KNN.std() * 2))
 
@@ -389,6 +390,7 @@ testFeatures_randomForest = testFeatures
 
 print("\nrandomForest:")
 hyperparameters_randomForest = {'criterion': 'entropy', 'max_depth': 4, 'max_features': 'sqrt', 'max_leaf_nodes': 16, 'min_samples_leaf': 1, 'min_samples_split': 2, 'n_estimators': 2000}
+estimator_randomForest = estimator_randomForest.set_params( **hyperparameters_randomForest)
 cross_score_randomForest = cross_val_score(estimator_randomForest, trainFeatures_randomForest, trainLabels, cv=cv, n_jobs = -1, scoring = scoring)
 print("ROC_AUC: %0.2f (+/- %0.2f)" % (cross_score_randomForest.mean(), cross_score_randomForest.std() * 2))
 

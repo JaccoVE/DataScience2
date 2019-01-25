@@ -244,7 +244,7 @@ def saveResults(trainReport, trainAccuracy, trainPrecision, trainRecall, trainAU
 # ------------------------------------------------------------------------------
 
 # Save locations
-fileNameResults = "../results/12hr_ensembled2.xlsx"
+fileNameResults = "../results/12hr_ensembled3.xlsx"
 
 # Load the train and test data
 trainData = np.loadtxt("../data/12hr_train_data.txt")
@@ -280,22 +280,20 @@ cv = 5
 scoring = "roc_auc"
 
 # Select the best features for each individual model
-trainFeatures_KNN = trainFeatures[:,[3,5,16,18,20,21,22,24,33,42, 0,1,2,7,8,12,13,14,15,17,23,25,26,29,30,34,35,36]]
-testFeatures_KNN = testFeatures[:,[3,5,16,18,20,21,22,24,33,42, 0,1,2,7,8,12,13,14,15,17,23,25,26,29,30,34,35,36]]
+trainFeatures_KNN = trainFeatures[:,[1,2,3,4,5,6,7,8,9,10,11,14,15,16,20,22,24,27,28,29,30,31,33,34,37,38,39,40,41,42,43, 0,13,17,19,21,25,26,36]]
+testFeatures_KNN = testFeatures[:,[1,2,3,4,5,6,7,8,9,10,11,14,15,16,20,22,24,27,28,29,30,31,33,34,37,38,39,40,41,42,43, 0,13,17,19,21,25,26,36]]
 
-trainFeatures_logisticRegression = trainFeatures#[:,[6,8,12,18,24,30,32,34,37,39,41,43]]
-testFeatures_logisticRegression = testFeatures#[:,[6,8,12,18,24,30,32,34,37,39,41,43]]
-trainFeatures_logisticRegression = np.delete(trainFeatures_logisticRegression, 42, axis=1)
-testFeatures_logisticRegression = np.delete(testFeatures_logisticRegression, 42, axis=1)
+trainFeatures_logisticRegression = trainFeatures[:,[8,12,18,24,30,37,41,43, 0,2,6,20,23,25,26,38,39,40]]
+testFeatures_logisticRegression = testFeatures[:,[8,12,18,24,30,37,41,43, 0,2,6,20,23,25,26,38,39,40]]
 
-trainFeatures_MLP = trainFeatures[:,[6,10,15,33,34,35,37,38,39, 13,17,40,43]]
-testFeatures_MLP = testFeatures[:,[6,10,15,33,34,35,37,38,39, 13,17,40,43]]
+trainFeatures_MLP = trainFeatures
+testFeatures_MLP = testFeatures
 
 trainFeatures_randomForest = trainFeatures
 testFeatures_randomForest = testFeatures
 
-trainFeatures_SVM = trainFeatures[:,[0,1,3,5,6,7,11,12,18,19,20,22,24,28,34,36,37, 2,4,8,13,14,15,16,17,21,23,25,26,27,29,30,31,32,33,35,38,40]]
-testFeatures_SVM = testFeatures[:,[0,1,3,5,6,7,11,12,18,19,20,22,24,28,34,36,37, 2,4,8,13,14,15,16,17,21,23,25,26,27,29,30,31,32,33,35,38,40]]
+trainFeatures_SVM = trainFeatures[:,[0,1,4,5,7,8,10,11,12,13,14,15,16,17,19,20,21,22,23,24,25,26,27,28,30,31,33,35,37,40,41,42,43, 2,3,9,29,34,39]]
+testFeatures_SVM = testFeatures[:,[0,1,4,5,7,8,10,11,12,13,14,15,16,17,19,20,21,22,23,24,25,26,27,28,30,31,33,35,37,40,41,42,43, 2,3,9,29,34,39]]
 
 # KNN ---------------------------------------------------------------------------------------------------
 print("\nKNN:")
@@ -336,23 +334,23 @@ print("ROC_AUC: %0.2f (+/- %0.2f)" % (cross_score_SVM.mean(), cross_score_SVM.st
 # Train the estimators using optimal hyperparameter values
 estimators = [  #estimator_KNN,
                 estimator_logisticRegression,
-                #estimator_MLP,
-                estimator_randomForest,
+                estimator_MLP,
+                #estimator_randomForest,
                 estimator_SVM]
 estimatorNames = [  #'KNN',
                     'Logistic Regression',
-                    #'MLP',
-                    'Random Forest',
+                    'MLP',
+                    #'Random Forest',
                     'SVM']
 trainFeatures = [   #trainFeatures_KNN,
                     trainFeatures_logisticRegression,
-                    #trainFeatures_MLP,
-                    trainFeatures_randomForest,
+                    trainFeatures_MLP,
+                    #trainFeatures_randomForest,
                     trainFeatures_SVM]
 testFeatures = [#testFeatures_KNN,
                 testFeatures_logisticRegression,
-                #testFeatures_MLP,
-                testFeatures_randomForest,
+                testFeatures_MLP,
+                #testFeatures_randomForest,
                 testFeatures_SVM]
 
 estimators = train(estimators, trainFeatures, trainLabels)

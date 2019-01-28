@@ -1,5 +1,7 @@
 # Load libraries
 import numpy as np
+import pandas as pd
+import pylab as pl
 import openpyxl
 from sklearn.externals import joblib
 from sklearn import metrics
@@ -90,13 +92,27 @@ def score(estimators, estimatorNames, features, labels):
 
         # Make ROC curve
         probability = estimator.predict_proba(features[count])[:,1]
-        fpr, tpr, threshold = metrics.roc_curve(labels, probability, pos_label=1)
+        fpr, tpr, thresholds = metrics.roc_curve(labels, probability, pos_label=1)
         auc = metrics.auc(fpr, tpr)
+
+        print("Youden's J statistic:")
+        print("fpr:")
+        print(fpr)
+
+        print("tpr:")
+        print(tpr)
+
+        J = tpr + 1-fpr-1
+        print("J:")
+        print(J)
+
+        print("Max J:")
+        print(max(J))
 
         aucEstimators.append(auc)
         print ("AUC:", auc)
 
-        plotROC(fpr, tpr, auc, estimatorNames[count])
+        #plotROC(fpr, tpr, auc, estimatorNames[count])
 
         count = count + 1
 
@@ -197,8 +213,22 @@ def scoreEnsembledAveraging(estimators, features, labels, threshold = 0.5):
     auc = metrics.auc(fpr, tpr)
     print ("ROC_AUC:", auc)
 
+    print("Youden's J statistic:")
+    print("fpr:")
+    print(fpr)
+
+    print("tpr:")
+    print(tpr)
+
+    J = tpr + 1-fpr-1
+    print("J:")
+    print(J)
+
+    print("Max J:")
+    print(max(J))
+
     # Plot the ROC curve of each estimator
-    plotROC(fpr, tpr, auc, "Averaging")
+    #plotROC(fpr, tpr, auc, "Averaging")
 
     return report, accuracy, precision, recall, auc
 
@@ -364,9 +394,9 @@ print("\nScore on test set:")
 testReport, testAccuracy, testPrecision, testRecall, testAUC = score(estimators, estimatorNames, testFeatures, testLabels)
 
 # Save the results of the ensembled models
-saveResults(trainReport, trainAccuracy, testPrecision, testRecall, trainAUC,
-            testReport, testAccuracy, testPrecision, testRecall, testAUC,
-            estimators, fileNameResults)
+#saveResults(trainReport, trainAccuracy, testPrecision, testRecall, trainAUC,
+#            testReport, testAccuracy, testPrecision, testRecall, testAUC,
+#            estimators, fileNameResults)
 
 # EnsembledVoting ---------------------------------------------------------------------------------------------------
 # Check the score of the ensembled models using voting on the training and test set
@@ -378,9 +408,9 @@ print("\nScore on test set:")
 testReportEnsembled, testAccuracyEnsembled, testPrecisionEnsembled, testRecallEnsembled, testAUCEnsembled = scoreEnsembledVoting(estimators, testFeatures, testLabels)
 
 # Save the results of the ensembled models
-saveResults([trainReportEnsembled], [trainAccuracyEnsembled], [trainPrecisionEnsembled], [trainRecallEnsembled], [trainAUCEnsembled],
-            [testReportEnsembled], [testAccuracyEnsembled], [testPrecisionEnsembled], [testRecallEnsembled], [testAUCEnsembled],
-            ["ensembledVoting"], fileNameResults)
+#saveResults([trainReportEnsembled], [trainAccuracyEnsembled], [trainPrecisionEnsembled], [trainRecallEnsembled], [trainAUCEnsembled],
+#            [testReportEnsembled], [testAccuracyEnsembled], [testPrecisionEnsembled], [testRecallEnsembled], [testAUCEnsembled],
+#            ["ensembledVoting"], fileNameResults)
 
 # EnsembledAveraging ---------------------------------------------------------------------------------------------------
 # Check the score of the ensembled models using voting on the training and test set
@@ -392,6 +422,6 @@ print("\nScore on test set:")
 testReportEnsembled, testAccuracyEnsembled, testPrecisionEnsembled, testRecallEnsembled, testAUCEnsembled = scoreEnsembledAveraging(estimators, testFeatures, testLabels)
 
 # Save the results of the ensembled models
-saveResults([trainReportEnsembled], [trainAccuracyEnsembled], [trainPrecisionEnsembled], [trainRecallEnsembled], [trainAUCEnsembled],
-            [testReportEnsembled], [testAccuracyEnsembled], [testPrecisionEnsembled], [testRecallEnsembled], [testAUCEnsembled],
-["ensembledAveraging"], fileNameResults)
+#saveResults([trainReportEnsembled], [trainAccuracyEnsembled], [trainPrecisionEnsembled], [trainRecallEnsembled], [trainAUCEnsembled],
+#            [testReportEnsembled], [testAccuracyEnsembled], [testPrecisionEnsembled], [testRecallEnsembled], [testAUCEnsembled],
+#            ["ensembledAveraging"], fileNameResults)

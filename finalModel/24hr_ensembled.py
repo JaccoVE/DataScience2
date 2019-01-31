@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 import pylab as pl
 import openpyxl
+import pickle
 from sklearn.externals import joblib
 from sklearn import metrics
 from sklearn.model_selection import cross_val_score
@@ -57,6 +58,8 @@ def score(estimators, estimatorNames, features, labels):
     precisionEstimators = []
     recallEstimators = []
     aucEstimators = []
+    fprEstimators = []
+    tprEstimators = []
     count = 0
 
     # Determine the performance of each estimator
@@ -93,6 +96,9 @@ def score(estimators, estimatorNames, features, labels):
         # Make ROC curve
         probability = estimator.predict_proba(features[count])[:,1]
         fpr, tpr, thresholds = metrics.roc_curve(labels, probability, pos_label=1)
+
+        fprEstimators.append(fpr)
+        tprEstimators.append(tpr)
         auc = metrics.auc(fpr, tpr)
 
         print("Youden's J statistic:")
@@ -116,7 +122,7 @@ def score(estimators, estimatorNames, features, labels):
 
         count = count + 1
 
-    return reportEstimators, accuracyEstimators, precisionEstimators, recallEstimators, aucEstimators
+    return reportEstimators, accuracyEstimators, precisionEstimators, recallEstimators, aucEstimators, fprEstimators, tprEstimators
 
 # Method: Voting
 def scoreEnsembledVoting(estimators, features, labels):
@@ -210,6 +216,7 @@ def scoreEnsembledAveraging(estimators, features, labels, threshold = 0.5):
 
     # ROC curve
     fpr, tpr, threshold = metrics.roc_curve(labels, probabilityAvgEnsembled, pos_label=0)
+
     auc = metrics.auc(fpr, tpr)
     print ("ROC_AUC:", auc)
 
@@ -230,17 +237,18 @@ def scoreEnsembledAveraging(estimators, features, labels, threshold = 0.5):
     # Plot the ROC curve of each estimator
     #plotROC(fpr, tpr, auc, "Averaging")
 
-    return report, accuracy, precision, recall, auc
+    return report, accuracy, precision, recall, auc, fpr, tpr
 
-def plotROC(testFPR, testTPR, testAUC, estimatorName):
+def plotROC(FPR, TPR, AUC, estimatorName):
     plt.figure()
-    plt.plot(testFPR, testTPR, label='ROC curve (area = %0.2f)' % testAUC)
+    for i in range(0, len(estimatorName)):
+        plt.plot(FPR[i], TPR[i], label=estimatorName[i])
     plt.plot([0, 1], [0, 1], 'k--')
     plt.xlim([0.0, 1.0])
     plt.ylim([0.0, 1.05])
     plt.xlabel('False Positive Rate')
     plt.ylabel('True Positive Rate')
-    plt.title('ROC Curve ' + str(estimatorName))
+    plt.title('ROC Curves For Models Using All Features')
     plt.legend(loc="lower right")
     plt.show()
 
@@ -313,11 +321,11 @@ scoring = "roc_auc"
 trainFeatures_KNN = trainFeatures[:,[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,26,27,29,30,31,33,34,35,36,37,38,39,40,41,42,43]]
 testFeatures_KNN = testFeatures[:,[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,26,27,29,30,31,33,34,35,36,37,38,39,40,41,42,43]]
 
-trainFeatures_logisticRegression = trainFeatures[:,[0,6,7,8,10,11,12,13,15,21,22,25,28,29,40,42, 1,2,4,14,16,17,18,20,23,26,31,33,34,35,39]]
-testFeatures_logisticRegression = testFeatures[:,[0,6,7,8,10,11,12,13,15,21,22,25,28,29,40,42, 1,2,4,14,16,17,18,20,23,26,31,33,34,35,39]]
+trainFeatures_logisticRegression = trainFeatures[:,[0,6,7,8,10,11,12,13,15,21,22,25,28,29,40,42]]#, 1,2,4,14,16,17,18,20,23,26,31,33,34,35,39]]
+testFeatures_logisticRegression = testFeatures[:,[0,6,7,8,10,11,12,13,15,21,22,25,28,29,40,42]]#, 1,2,4,14,16,17,18,20,23,26,31,33,34,35,39]]
 
-trainFeatures_MLP = trainFeatures[:,[8,9,20,23,26,27,34,36, 6,42]]
-testFeatures_MLP = testFeatures[:,[8,9,20,23,26,27,34,36, 6,42]]
+trainFeatures_MLP = trainFeatures[:,[8,9,20,23,26,27,34,36]]#, 6,42]]
+testFeatures_MLP = testFeatures[:,[8,9,20,23,26,27,34,36]]#, 6,42]]
 
 trainFeatures_randomForest = trainFeatures
 testFeatures_randomForest = testFeatures
@@ -362,24 +370,24 @@ print("ROC_AUC: %0.2f (+/- %0.2f)" % (cross_score_SVM.mean(), cross_score_SVM.st
 
 # Individual Models ---------------------------------------------------------------------------------------------------
 # Train the estimators using optimal hyperparameter values
-estimators = [  #estimator_KNN,
+estimators = [  estimator_KNN,
                 estimator_logisticRegression,
-                #estimator_MLP,
+                estimator_MLP,
                 estimator_randomForest,
                 estimator_SVM]
-estimatorNames = [  #'KNN',
+estimatorNames = [  'KNN',
                     'Logistic Regression',
-                    #'MLP',
+                    'MLP',
                     'Random Forest',
                     'SVM']
-trainFeatures = [   #trainFeatures_KNN,
+trainFeatures = [   trainFeatures_KNN,
                     trainFeatures_logisticRegression,
-                    #trainFeatures_MLP,
+                    trainFeatures_MLP,
                     trainFeatures_randomForest,
                     trainFeatures_SVM]
-testFeatures = [#testFeatures_KNN,
+testFeatures = [testFeatures_KNN,
                 testFeatures_logisticRegression,
-                #testFeatures_MLP,
+                testFeatures_MLP,
                 testFeatures_randomForest,
                 testFeatures_SVM]
 
@@ -388,17 +396,22 @@ estimators = train(estimators, trainFeatures, trainLabels)
 # Check the score of each individual model on the training and test set
 print("\n\nIndividual models:")
 print("\nScore on training set:")
-trainReport, trainAccuracy, trainPrecision, trainRecall, trainAUC = score(estimators, estimatorNames, trainFeatures, trainLabels)
+trainReport, trainAccuracy, trainPrecision, trainRecall, trainAUC, trainFPR, trainTPR = score(estimators, estimatorNames, trainFeatures, trainLabels)
 
 print("\nScore on test set:")
-testReport, testAccuracy, testPrecision, testRecall, testAUC = score(estimators, estimatorNames, testFeatures, testLabels)
+testReport, testAccuracy, testPrecision, testRecall, testAUC, testFPR, testTPR = score(estimators, estimatorNames, testFeatures, testLabels)
+
+rocCurvesEstimators = estimatorNames
+rocCurvesAUC = testAUC
+rocCurvesFPR = testFPR
+rocCurvesTPR = testTPR
 
 # Save the results of the ensembled models
-#saveResults(trainReport, trainAccuracy, testPrecision, testRecall, trainAUC,
-#            testReport, testAccuracy, testPrecision, testRecall, testAUC,
-#            estimators, fileNameResults)
+saveResults(trainReport, trainAccuracy, testPrecision, testRecall, trainAUC,
+            testReport, testAccuracy, testPrecision, testRecall, testAUC,
+            estimators, fileNameResults)
 
-# EnsembledVoting ---------------------------------------------------------------------------------------------------
+# EnsembledVoting 5 Models ---------------------------------------------------------------------------------------------------
 # Check the score of the ensembled models using voting on the training and test set
 print("\n\nEnsembled Voting:")
 print("\nScore on training set:")
@@ -408,20 +421,120 @@ print("\nScore on test set:")
 testReportEnsembled, testAccuracyEnsembled, testPrecisionEnsembled, testRecallEnsembled, testAUCEnsembled = scoreEnsembledVoting(estimators, testFeatures, testLabels)
 
 # Save the results of the ensembled models
-#saveResults([trainReportEnsembled], [trainAccuracyEnsembled], [trainPrecisionEnsembled], [trainRecallEnsembled], [trainAUCEnsembled],
-#            [testReportEnsembled], [testAccuracyEnsembled], [testPrecisionEnsembled], [testRecallEnsembled], [testAUCEnsembled],
-#            ["ensembledVoting"], fileNameResults)
+saveResults([trainReportEnsembled], [trainAccuracyEnsembled], [trainPrecisionEnsembled], [trainRecallEnsembled], [trainAUCEnsembled],
+            [testReportEnsembled], [testAccuracyEnsembled], [testPrecisionEnsembled], [testRecallEnsembled], [testAUCEnsembled],
+            ["ensembledVoting 5 Models"], fileNameResults)
+
+# EnsembledAveraging 5 Models ---------------------------------------------------------------------------------------------------
+# Check the score of the ensembled models using averaging on the training and test set
+print("\n\nEnsembled Averaging:")
+print("\nScore on training set:")
+trainReportEnsembled, trainAccuracyEnsembled, trainPrecisionEnsembled, trainRecallEnsembled, trainAUCEnsembled, trainFPREnsembled, trainTPREnsembled = scoreEnsembledAveraging(estimators, trainFeatures, trainLabels)
+
+print("\nScore on test set:")
+testReportEnsembled, testAccuracyEnsembled, testPrecisionEnsembled, testRecallEnsembled, testAUCEnsembled, testFPREnsembled, testTPREnsembled = scoreEnsembledAveraging(estimators, testFeatures, testLabels)
+
+# Save the results of the ensembled models
+saveResults([trainReportEnsembled], [trainAccuracyEnsembled], [trainPrecisionEnsembled], [trainRecallEnsembled], [trainAUCEnsembled],
+            [testReportEnsembled], [testAccuracyEnsembled], [testPrecisionEnsembled], [testRecallEnsembled], [testAUCEnsembled],
+            ["ensembledAveraging 5 Models"], fileNameResults)
+
+rocCurvesEstimators.append("Averaging 5 Models")
+rocCurvesAUC.append(testAUCEnsembled)
+rocCurvesFPR.append(testFPREnsembled)
+rocCurvesTPR.append(testTPREnsembled)
+
+# EnsembledAveraging 4 Models ---------------------------------------------------------------------------------------------------
+estimators = [  estimator_KNN,
+		estimator_logisticRegression,
+                estimator_randomForest,
+                estimator_SVM]
+estimatorNames = [  'KNN',
+                    'Logistic Regression',
+                    'Random Forest',
+                    'SVM']
+trainFeatures = [   trainFeatures_KNN,
+                    trainFeatures_logisticRegression,
+                    trainFeatures_randomForest,
+                    trainFeatures_SVM]
+testFeatures = [testFeatures_KNN,
+                testFeatures_logisticRegression,
+                testFeatures_randomForest,
+                testFeatures_SVM]
+
+# Check the score of the ensembled models using averaging on the training and test set
+print("\n\nEnsembled Averaging:")
+print("\nScore on training set:")
+trainReportEnsembled, trainAccuracyEnsembled, trainPrecisionEnsembled, trainRecallEnsembled, trainAUCEnsembled, trainFPREnsembled, trainTPREnsembled = scoreEnsembledAveraging(estimators, trainFeatures, trainLabels)
+
+print("\nScore on test set:")
+testReportEnsembled, testAccuracyEnsembled, testPrecisionEnsembled, testRecallEnsembled, testAUCEnsembled, testFPREnsembled, testTPREnsembled = scoreEnsembledAveraging(estimators, testFeatures, testLabels)
+
+# Save the results of the ensembled models
+saveResults([trainReportEnsembled], [trainAccuracyEnsembled], [trainPrecisionEnsembled], [trainRecallEnsembled], [trainAUCEnsembled],
+            [testReportEnsembled], [testAccuracyEnsembled], [testPrecisionEnsembled], [testRecallEnsembled], [testAUCEnsembled],
+            ["ensembledAveraging 4 Models"], fileNameResults)
+
+rocCurvesEstimators.append("Averaging 4 Models")
+rocCurvesAUC.append(testAUCEnsembled)
+rocCurvesFPR.append(testFPREnsembled)
+rocCurvesTPR.append(testTPREnsembled)
+
+estimators = [  estimator_logisticRegression,
+                estimator_randomForest,
+                estimator_SVM]
+estimatorNames = [  'Logistic Regression',
+                    'Random Forest',
+                    'SVM']
+trainFeatures = [   trainFeatures_logisticRegression,
+                    trainFeatures_randomForest,
+                    trainFeatures_SVM]
+testFeatures = [testFeatures_logisticRegression,
+                testFeatures_randomForest,
+                testFeatures_SVM]
 
 # EnsembledAveraging ---------------------------------------------------------------------------------------------------
 # Check the score of the ensembled models using voting on the training and test set
-print("\n\nEnsembled Averaging:")
+print("\n\nEnsembled Voting:")
 print("\nScore on training set:")
-trainReportEnsembled, trainAccuracyEnsembled, trainPrecisionEnsembled, trainRecallEnsembled, trainAUCEnsembled = scoreEnsembledAveraging(estimators, trainFeatures, trainLabels)
+trainReportEnsembled, trainAccuracyEnsembled, trainPrecisionEnsembled, trainRecallEnsembled, trainAUCEnsembled = scoreEnsembledVoting(estimators, trainFeatures, trainLabels)
 
 print("\nScore on test set:")
-testReportEnsembled, testAccuracyEnsembled, testPrecisionEnsembled, testRecallEnsembled, testAUCEnsembled = scoreEnsembledAveraging(estimators, testFeatures, testLabels)
+testReportEnsembled, testAccuracyEnsembled, testPrecisionEnsembled, testRecallEnsembled, testAUCEnsembled = scoreEnsembledVoting(estimators, testFeatures, testLabels)
 
 # Save the results of the ensembled models
-#saveResults([trainReportEnsembled], [trainAccuracyEnsembled], [trainPrecisionEnsembled], [trainRecallEnsembled], [trainAUCEnsembled],
-#            [testReportEnsembled], [testAccuracyEnsembled], [testPrecisionEnsembled], [testRecallEnsembled], [testAUCEnsembled],
-#            ["ensembledAveraging"], fileNameResults)
+saveResults([trainReportEnsembled], [trainAccuracyEnsembled], [trainPrecisionEnsembled], [trainRecallEnsembled], [trainAUCEnsembled],
+            [testReportEnsembled], [testAccuracyEnsembled], [testPrecisionEnsembled], [testRecallEnsembled], [testAUCEnsembled],
+            ["ensembledVoting 3 Models"], fileNameResults)
+
+# EnsembledAveraging 3 Models ---------------------------------------------------------------------------------------------------
+# Check the score of the ensembled models using averaging on the training and test set
+print("\n\nEnsembled Averaging:")
+print("\nScore on training set:")
+trainReportEnsembled, trainAccuracyEnsembled, trainPrecisionEnsembled, trainRecallEnsembled, trainAUCEnsembled, trainFPREnsembled, trainTPREnsembled = scoreEnsembledAveraging(estimators, trainFeatures, trainLabels)
+
+print("\nScore on test set:")
+testReportEnsembled, testAccuracyEnsembled, testPrecisionEnsembled, testRecallEnsembled, testAUCEnsembled, testFPREnsembled, testTPREnsembled = scoreEnsembledAveraging(estimators, testFeatures, testLabels)
+
+# Save the results of the ensembled models
+saveResults([trainReportEnsembled], [trainAccuracyEnsembled], [trainPrecisionEnsembled], [trainRecallEnsembled], [trainAUCEnsembled],
+            [testReportEnsembled], [testAccuracyEnsembled], [testPrecisionEnsembled], [testRecallEnsembled], [testAUCEnsembled],
+            ["ensembledAveraging 3 Models"], fileNameResults)
+
+rocCurvesEstimators.append("Averaging 3 Models")
+rocCurvesAUC.append(testAUCEnsembled)
+rocCurvesFPR.append(testFPREnsembled)
+rocCurvesTPR.append(testTPREnsembled)
+
+# Save estimator names, tpr, fpr and auc to file
+with open("../rocResults/24hr_AllFeatures_Estimators.txt", 'wb') as filehandle:
+    pickle.dump(rocCurvesEstimators, filehandle)
+with open("../rocResults/24hr_AllFeatures_AUC.txt", 'wb') as filehandle:
+    pickle.dump(rocCurvesAUC, filehandle)
+with open("../rocResults/24hr_AllFeatures_FPR.txt", 'wb') as filehandle:
+    pickle.dump(rocCurvesFPR, filehandle)
+with open("../rocResults/24hr_AllFeatures_TPR.txt", 'wb') as filehandle:
+    pickle.dump(rocCurvesTPR, filehandle)
+
+# Plot the ROC curves in one plot
+plotROC(rocCurvesFPR, rocCurvesTPR, rocCurvesAUC, rocCurvesEstimators)
